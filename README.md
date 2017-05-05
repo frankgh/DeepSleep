@@ -1,4 +1,4 @@
-###Git global setup
+### Git global setup
 
 ```
 git config --global user.name "Your Name"
