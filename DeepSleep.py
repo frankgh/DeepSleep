@@ -213,8 +213,8 @@ def test_model(model, test, batch_size=192):
     conf_mat = metrics.confusion_matrix(y_true_class, y_pred_class)
 
     print "Test Loss and accuracy: ", loss_and_metrics
-    plot_roc_curve(5, y_true, y_pred)
     plot_confusion_matrix(conf_mat, classes=['S1', 'S2', 'S3', 'A', 'R'])
+    plot_roc_curve(5, y_true, y_pred)
 
 
 def setup(data_dir, k_folds=9, batch_size=192, epochs=100, lr=1e-5, decay=0.9, m=0.5, ridge=2e-4):
