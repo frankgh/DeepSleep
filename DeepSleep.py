@@ -79,6 +79,28 @@ def split_data(data, split=0.1):
     return data[perm[i:]], data[perm[0:i]]  # return training, test sets
 
 
+def plot_accuracy(history):
+    # summarize history for accuracy
+    plt.plot(history.history['acc'], linewidth=1)
+    plt.plot(history.history['val_acc'], linestyle='dotted', linewidth=1)
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.savefig('accuracy.png', dpi=100)
+
+
+def plot_loss(history):
+    # summarize history for loss
+    plt.plot(history.history['loss'], linewidth=1)
+    plt.plot(history.history['val_loss'], linestyle='dotted', linewidth=1)
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.savefig('loss.png', dpi=100)
+
+
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
                           title='Confusion matrix',
@@ -194,12 +216,17 @@ def train_model(data, k_folds=9, batch_size=192, epochs=100, lr=1e-5, decay=0.9,
         filepath = './history/DS_' + name + '_{epoch:03d}-{val_acc:.2f}.h5'
         checkpointer = ModelCheckpoint(filepath=filepath, monitor='val_loss', verbose=0, save_best_only=True)
 
-        model.fit_generator(next_batch(train, batch_size), steps_per_epoch, epochs=epochs, verbose=2,
-                            class_weight=class_weight,
-                            validation_data=unfold(val),
-                            callbacks=[checkpointer, earlyStopper])
+        history = model.fit_generator(next_batch(train, batch_size), steps_per_epoch,
+                                      epochs=epochs,
+                                      verbose=2,
+                                      class_weight=class_weight,
+                                      validation_data=unfold(val),
+                                      callbacks=[checkpointer, earlyStopper])
 
-    return model
+    print(history.history.keys())
+    plot_accuracy(history)
+    plot_loss(history)
+    return model, history
 
 
 def test_model(model, test, batch_size=192):
@@ -220,8 +247,8 @@ def test_model(model, test, batch_size=192):
 def setup(data_dir, k_folds=9, batch_size=192, epochs=100, lr=1e-5, decay=0.9, m=0.5, ridge=2e-4):
     data = load_data(data_dir)
     data, test = split_data(data)
-    model = train_model(data, k_folds=k_folds, batch_size=batch_size, epochs=epochs, lr=lr, decay=decay, m=m,
-                        ridge=ridge)
+    model, history = train_model(data, k_folds=k_folds, batch_size=batch_size, epochs=epochs, lr=lr, decay=decay, m=m,
+                                 ridge=ridge)
     test_model(model, test, batch_size=batch_size)
 
 
