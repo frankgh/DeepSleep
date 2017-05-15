@@ -215,5 +215,5 @@ def setup(data_dir, k_folds=9, batch_size=192, epochs=100, lr=1e-5, decay=0.9, m
 
 if __name__ == "__main__":
     print 'Setting up'
-    setup('/home/afguerrerohernan/data/patients_processed/', epochs=1)
+    setup('/home/afguerrerohernan/data/patients_processed/')
     print 'Training completed'
