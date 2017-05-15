@@ -9,6 +9,8 @@ import random
 import itertools
 import sklearn.metrics as metrics
 
+from sklearn.utils import compute_class_weight
+
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
 from keras.layers.pooling import MaxPooling1D
@@ -37,7 +39,7 @@ def unfold(data):
     for item in data[1:]:
         x = np.concatenate((x, item['X']));
         y = np.concatenate((y, item['Y']))
-    return (x, y)
+    return x, y
 
 
 def count_samples(data):
@@ -46,6 +48,14 @@ def count_samples(data):
 
 def count_steps(data, batch_size):
     return int(np.sum([item['Y'].shape[0] / batch_size for item in data]))
+
+
+def calculate_weights(data):
+    y = np.array(data[0]['Y'])
+    for item in data[1:]:
+        y = np.concatenate((y, item['Y']))
+    y_1 = np.argmax(y, axis=1)
+    return compute_class_weight('balanced', np.arange(5), y_1)
 
 
 def load_data(path):
@@ -170,6 +180,7 @@ def train_model(data, k_folds=9, batch_size=192, epochs=100, lr=1e-5, decay=0.9,
     model.summary()
     fold_size = int(math.ceil(len(data) / k_folds))
     earlyStopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='auto')
+    class_weight = calculate_weights(data)
 
     for k in range(k_folds):
         i = int(k * fold_size)
@@ -184,6 +195,7 @@ def train_model(data, k_folds=9, batch_size=192, epochs=100, lr=1e-5, decay=0.9,
         checkpointer = ModelCheckpoint(filepath=filepath, monitor='val_loss', verbose=0, save_best_only=True)
 
         model.fit_generator(next_batch(train, batch_size), steps_per_epoch, epochs=epochs, verbose=2,
+                            class_weight=class_weight,
                             validation_data=unfold(val),
                             callbacks=[checkpointer, earlyStopper])
 
