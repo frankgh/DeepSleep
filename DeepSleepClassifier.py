@@ -283,8 +283,8 @@ class DeepSleepClassifier(object):
             val_loss.extend(history.history['val_loss'])
 
         print(history.history.keys())
-        plot_accuracy(self.output_dir, history)
-        plot_loss(self.output_dir, history)
+        plot_accuracy(self.output_dir, acc, val_acc)
+        plot_loss(self.output_dir, loss, val_loss)
         return model, history
 
     def test_model(self, model):
