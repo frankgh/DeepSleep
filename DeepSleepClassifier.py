@@ -141,7 +141,7 @@ def plot_accuracy(output_dir, acc, val_acc):
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
+    plt.legend(['train', 'validation'], loc='upper left')
     plt.savefig(os.path.join(output_dir, 'accuracy.png'), dpi=100)
     plt.clf()
     plt.cla()
@@ -158,7 +158,7 @@ def plot_loss(output_dir, loss, val_loss):
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper right')
+    plt.legend(['train', 'validation'], loc='upper right')
     plt.savefig(os.path.join(output_dir, 'loss.png'), dpi=100)
     plt.clf()
     plt.cla()
@@ -220,9 +220,9 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
 
+        model.add(BatchNormalization(input_shape=(15000, 3)))
         model.add(
-            Conv1D(25, 50, padding='valid', input_shape=(15000, 3), kernel_initializer=self.kernel_initializer,
-                   bias_initializer=bias_init))
+            Conv1D(25, 50, padding='valid', kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
