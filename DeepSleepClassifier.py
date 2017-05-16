@@ -219,22 +219,29 @@ class DeepSleepClassifier(object):
         adam = Adam(lr=self.lr, decay=self.decay)
         bias_init = Constant(value=0.1)
         model = Sequential()
+        filters = 50
+        kernel_size = 60
 
         model.add(BatchNormalization(input_shape=(15000, 3)))
-        model.add(
-            Conv1D(25, 50, padding='valid', kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
+        model.add(Conv1D(filters, kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
+                         bias_initializer=bias_init))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
-        model.add(
-            Conv1D(25, 50, padding='valid', kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
+        model.add(Conv1D(filters, kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
+                         bias_initializer=bias_init))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
         model.add(MaxPooling1D())
         model.add(Flatten())
 
-        model.add(Dense(1024, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                        kernel_regularizer=l2(self.ridge)))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
+
+        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge)))
         model.add(BatchNormalization())
         model.add(Activation('relu'))

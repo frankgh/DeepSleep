@@ -14,8 +14,8 @@ if __name__ == "__main__":
     print 'Setting up'
 
     classifier = DeepSleepClassifier('/home/afguerrerohernan/data/patients_processed/',
-                                     '/home/afguerrerohernan/work/DeepSleep/exp003/',
-                                     epochs=1)
+                                     '/home/afguerrerohernan/work/DeepSleep/exp005/',
+                                     decay=0.85)
 
     model, _ = classifier.train_model()
     classifier.test_model(model)
