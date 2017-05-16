@@ -15,7 +15,8 @@ if __name__ == "__main__":
 
     classifier = DeepSleepClassifier('/home/afguerrerohernan/data/patients_processed/',
                                      '/home/afguerrerohernan/work/DeepSleep/exp005/',
-                                     decay=0.85)
+                                     decay=0.85,
+                                     batch_size=128)
 
     model, _ = classifier.train_model()
     classifier.test_model(model)
