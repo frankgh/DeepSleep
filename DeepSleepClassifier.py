@@ -194,6 +194,9 @@ class DeepSleepClassifier(object):
         self.data = self.load_data()
         self.train_set, self.test_set = self.split_data()
 
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
+
     def load_data(self):
         """
         Load all npz files from the given path
