@@ -7,33 +7,33 @@ from argparse import ArgumentParser
 from DeepSleepClassifier import DeepSleepClassifier
 
 # For reproducibility
-random.seed(4236)
-numpy.random.seed(4236)
+random.seed(8512)
+numpy.random.seed(8512)
 
 
 def get_kwargs(args):
-    kwargs = dict()
+    _kwargs = dict()
     if args.k_folds is not None:
-        kwargs['k_folds'] = args.k_folds
+        _kwargs['k_folds'] = args.k_folds
     if args.batch_size is not None:
-        kwargs['batch_size'] = args.batch_size
+        _kwargs['batch_size'] = args.batch_size
     if args.epochs is not None:
-        kwargs['epochs'] = args.epochs
+        _kwargs['epochs'] = args.epochs
     if args.lr is not None:
-        kwargs['lr'] = args.lr
+        _kwargs['lr'] = args.lr
     if args.decay is not None:
-        kwargs['decay'] = args.decay
+        _kwargs['decay'] = args.decay
     if args.m is not None:
-        kwargs['m'] = args.m
+        _kwargs['m'] = args.m
     if args.ridge is not None:
-        kwargs['ridge'] = args.ridge
+        _kwargs['ridge'] = args.ridge
     if args.patience is not None:
-        kwargs['patience'] = args.patience
+        _kwargs['patience'] = args.patience
     if args.kernel_initializer is not None:
-        kwargs['kernel_initializer'] = args.kernel_initializer
+        _kwargs['kernel_initializer'] = args.kernel_initializer
     if args.verbose is not None:
-        kwargs['verbose'] = args.verbose
-    return kwargs
+        _kwargs['verbose'] = args.verbose
+    return _kwargs
 
 
 if __name__ == "__main__":
