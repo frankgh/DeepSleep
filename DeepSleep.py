@@ -35,7 +35,7 @@ if __name__ == "__main__":
                                      epochs=args.epochs,
                                      lr=args.lr,
                                      decay=args.decay,
-                                     m=args.mtn,
+                                     m=args.m,
                                      ridge=args.ridge,
                                      patience=args.patience,
                                      kernel_initializer=args.kernel_initializer,
