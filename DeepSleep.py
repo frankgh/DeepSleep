@@ -10,6 +10,32 @@ from DeepSleepClassifier import DeepSleepClassifier
 random.seed(4236)
 numpy.random.seed(4236)
 
+
+def get_kwargs(args):
+    kwargs = dict()
+    if args.k_folds is not None:
+        kwargs['k_folds'] = args.k_folds
+    if args.batch_size is not None:
+        kwargs['batch_size'] = args.batch_size
+    if args.epochs is not None:
+        kwargs['epochs'] = args.epochs
+    if args.lr is not None:
+        kwargs['lr'] = args.lr
+    if args.decay is not None:
+        kwargs['decay'] = args.decay
+    if args.m is not None:
+        kwargs['m'] = args.m
+    if args.ridge is not None:
+        kwargs['ridge'] = args.ridge
+    if args.patience is not None:
+        kwargs['patience'] = args.patience
+    if args.kernel_initializer is not None:
+        kwargs['kernel_initializer'] = args.kernel_initializer
+    if args.verbose is not None:
+        kwargs['verbose'] = args.verbose
+    return kwargs
+
+
 if __name__ == "__main__":
     ap = ArgumentParser(description='Train the deep sleep neural network')
     ap.add_argument('-i', dest='data_dir', metavar='data_dir', help='path for the npz patient data', required=True)
@@ -28,18 +54,11 @@ if __name__ == "__main__":
 
     print 'Setting up'
 
+    kwargs = get_kwargs(args)
+    print kwargs
+
     start = time.time()
-    classifier = DeepSleepClassifier(args.data_dir, args.output_dir,
-                                     k_folds=args.k_folds,
-                                     batch_size=args.batch_size,
-                                     epochs=args.epochs,
-                                     lr=args.lr,
-                                     decay=args.decay,
-                                     m=args.m,
-                                     ridge=args.ridge,
-                                     patience=args.patience,
-                                     kernel_initializer=args.kernel_initializer,
-                                     verbose=args.verbose)
+    classifier = DeepSleepClassifier(args.data_dir, args.output_dir, kwargs)
     model, _ = classifier.train_model()
     classifier.test_model(model)
     elapsed = time.time() - start
