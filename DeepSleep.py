@@ -51,11 +51,9 @@ if __name__ == "__main__":
     ap.add_argument('--init', dest='kernel_initializer', metavar='kernel_initializer', help='kernel initializer')
     ap.add_argument('--verbose', dest='verbose', metavar='verbose', help='verbosity level', type=int)
     args = ap.parse_args()
-
-    print 'Setting up'
-
     kwargs = get_kwargs(args)
-    print kwargs
+
+    print 'Setting up with kwargs:', kwargs
 
     start = time.time()
     classifier = DeepSleepClassifier(args.data_dir, args.output_dir, **kwargs)
@@ -63,4 +61,5 @@ if __name__ == "__main__":
     classifier.test_model(model)
     elapsed = time.time() - start
 
+    print 'Classifier config:', classifier.get_config()
     print 'Training completed in', str(timedelta(seconds=elapsed))

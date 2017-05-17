@@ -134,14 +134,16 @@ def plot_roc_curve(output_dir, n_classes, y_true, y_pred):
 def plot_accuracy(output_dir, acc, val_acc):
     """
     Summarize history for accuracy
-    :param history: model history
+    :param output_dir: the output directory for the plot png file 
+    :param acc: training accuracy list
+    :param val_acc: validation accuracy list
     """
     plt.plot(acc, linewidth=1)
     plt.plot(val_acc, linestyle='dotted', linewidth=1)
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
-    plt.legend(['train', 'validation'], loc='upper left')
+    plt.legend(['train', 'validation'], loc='bottom right')
     plt.savefig(os.path.join(output_dir, 'accuracy.png'), dpi=100)
     plt.clf()
     plt.cla()
@@ -151,7 +153,9 @@ def plot_accuracy(output_dir, acc, val_acc):
 def plot_loss(output_dir, loss, val_loss):
     """
     Summarize history for loss
-    :param history: model history
+    :param output_dir: the output directory for the plot png file
+    :param loss: training loss history
+    :param val_loss: validation loss history
     """
     plt.plot(loss, linewidth=1)
     plt.plot(val_loss, linestyle='dotted', linewidth=1)
@@ -177,7 +181,9 @@ class DeepSleepClassifier(object):
                  ridge=2e-4,
                  patience=10,
                  kernel_initializer='he_normal',
-                 verbose=2):
+                 verbose=2,
+                 filters=25,
+                 kernel_size=50):
         self.data_dir = data_dir
         self.output_dir = output_dir
         self.k_folds = k_folds
@@ -190,6 +196,8 @@ class DeepSleepClassifier(object):
         self.patience = patience
         self.kernel_initializer = kernel_initializer
         self.verbose = verbose
+        self.filters = filters
+        self.kernel_size = kernel_size
 
         self.data = self.load_data()
         self.train_set, self.test_set = self.split_data()
@@ -219,16 +227,14 @@ class DeepSleepClassifier(object):
         adam = Adam(lr=self.lr, decay=self.decay)
         bias_init = Constant(value=0.1)
         model = Sequential()
-        filters = 50
-        kernel_size = 60
 
         model.add(BatchNormalization(input_shape=(15000, 3)))
-        model.add(Conv1D(filters, kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
                          bias_initializer=bias_init))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
-        model.add(Conv1D(filters, kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
                          bias_initializer=bias_init))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
@@ -307,3 +313,22 @@ class DeepSleepClassifier(object):
         print "Loss: {} Accuracy: {}%".format(loss_and_metrics[0], loss_and_metrics[1] * 100)
         plot_confusion_matrix(self.output_dir, conf_mat, classes=['S1', 'S2', 'S3', 'A', 'R'])
         plot_roc_curve(self.output_dir, 5, y_true, y_pred)
+
+    def get_config(self):
+        config = {
+            'data_dir': self.data_dir,
+            'output_dir': self.output_dir,
+            'k_folds': self.k_folds,
+            'batch_size': self.batch_size,
+            'epochs': self.epochs,
+            'lr': self.lr,
+            'decay': self.decay,
+            'm': self.m,
+            'ridge': self.ridge,
+            'patience': self.patience,
+            'kernel_initializer': self.kernel_initializer,
+            'verbose': self.verbose,
+            'filters': self.filters,
+            'kernel_size': self.kernel_size
+        }
+        return dict(list(config.items()))
