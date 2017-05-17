@@ -58,7 +58,7 @@ if __name__ == "__main__":
     print kwargs
 
     start = time.time()
-    classifier = DeepSleepClassifier(args.data_dir, args.output_dir, kwargs)
+    classifier = DeepSleepClassifier(args.data_dir, args.output_dir, **kwargs)
     model, _ = classifier.train_model()
     classifier.test_model(model)
     elapsed = time.time() - start
