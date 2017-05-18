@@ -230,8 +230,7 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
 
         model = Sequential()
-        model.add(LSTM(64, return_sequences=True, input_shape=(15000, 3)))
-        model.add(LSTM(32, return_sequences=True))
+        model.add(LSTM(30, return_sequences=True, input_shape=(15000, 3)))
         model.add(LSTM(10))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
