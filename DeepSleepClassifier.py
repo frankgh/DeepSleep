@@ -11,12 +11,13 @@ from sklearn.utils import compute_class_weight
 
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
+from keras.layers.recurrent import LSTM
 from keras.layers.pooling import MaxPooling1D
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.optimizers import Adam
+from keras.optimizers import RMSprop
 from keras.regularizers import l2
 from keras.initializers import Constant
 
@@ -225,42 +226,18 @@ class DeepSleepClassifier(object):
         return self.data[perm[i:]], self.data[perm[0:i]]  # return training, test sets
 
     def build_model(self):
-        adam = Adam(lr=self.lr, decay=self.decay)
+        optimizer = RMSprop(lr=self.lr, decay=self.decay)
         bias_init = Constant(value=0.1)
+
         model = Sequential()
-
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
-                         bias_initializer=bias_init, input_shape=(15000, 3)))
-        model.add(BatchNormalization())
-        # model.add(Activation('relu'))
-        model.add(LeakyReLU(alpha=0.3))
-
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
-                         bias_initializer=bias_init))
-        model.add(BatchNormalization())
-        # model.add(Activation('relu'))
-        model.add(LeakyReLU(alpha=0.3))
-
-        model.add(MaxPooling1D())
-        model.add(Flatten())
-
-        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        # model.add(Activation('relu'))
-        model.add(LeakyReLU(alpha=0.3))
-
-        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        # model.add(Activation('relu'))
-        model.add(LeakyReLU(alpha=0.3))
+        model.add(LSTM(2048, return_sequences=True, dropout=0.2, recurrent_dropout=0.2, input_shape=(15000, 3)))
+        model.add(LSTM(512, return_sequences=True, dropout=0.2, recurrent_dropout=0.2))
+        model.add(LSTM(64, dropout=0.2, recurrent_dropout=0.2))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(Activation('softmax'))
+                        kernel_regularizer=l2(self.ridge), activation='softmax'))
 
-        model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
         return model
 
