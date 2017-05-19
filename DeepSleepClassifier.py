@@ -94,13 +94,12 @@ def plot_confusion_matrix(output_dir, cm, classes,
 
 def plot_roc_curve(output_dir, n_classes, y_true, y_pred):
     """
-
-    :param n_classes: 
-    :param y_true: 
-    :param y_pred: 
-    :return: 
+    Compute ROC curve and ROC area for each class
+    :param output_dir: where to save the png image file 
+    :param n_classes: number of classes
+    :param y_true: the true values
+    :param y_pred: predicted values
     """
-    # Compute ROC curve and ROC area for each class
     fpr = dict()
     tpr = dict()
     roc_auc = dict()
@@ -269,7 +268,6 @@ class DeepSleepClassifier(object):
         model.summary()
         fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
         class_weight = calculate_weights(self.train_set)
-
         acc, val_acc, loss, val_loss = [], [], [], []
 
         for k in range(2 * self.k_folds):
