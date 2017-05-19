@@ -10,12 +10,8 @@ import matplotlib.pyplot as plt
 from sklearn.utils import compute_class_weight
 
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten
+from keras.layers import Dense
 from keras.layers.recurrent import LSTM
-from keras.layers.pooling import MaxPooling1D
-from keras.layers.convolutional import Conv1D
-from keras.layers.normalization import BatchNormalization
-from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import RMSprop
 from keras.regularizers import l2
@@ -217,7 +213,7 @@ class DeepSleepClassifier(object):
     def split_data(self, split=0.1):
         """
         Split permutated data into train and test set split by the split value
-        :param self: 
+        # Arguments
         :param split: the split amount
         :return: the training and test sets
         """
