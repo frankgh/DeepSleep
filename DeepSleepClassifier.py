@@ -268,14 +268,12 @@ class DeepSleepClassifier(object):
         model = self.build_model()
         model.summary()
         fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
-        early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
-                                      mode='auto')
         class_weight = calculate_weights(self.train_set)
 
         acc, val_acc, loss, val_loss = [], [], [], []
 
-        for k in range(self.k_folds):
-            i = int(k * fold_size)
+        for k in range(2 * self.k_folds):
+            i = int(k * fold_size) % self.k_folds
             val = self.train_set[i:i + fold_size]
             train = np.concatenate((self.train_set[:i], self.train_set[i + fold_size:]))
             steps_per_epoch = count_steps(train, self.batch_size)
@@ -292,7 +290,7 @@ class DeepSleepClassifier(object):
                                           verbose=self.verbose,
                                           class_weight=class_weight,
                                           validation_data=unfold(val),
-                                          callbacks=[checkpointer, early_stopper])
+                                          callbacks=[checkpointer])
 
             acc.extend(history.history['acc'])
             val_acc.extend(history.history['val_acc'])
