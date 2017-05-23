@@ -238,7 +238,6 @@ class DeepSleepClassifier(object):
         model.add(LeakyReLU(alpha=0.3))
 
         model.add(MaxPooling1D())
-        model.add(Flatten())
 
         model.add(
             GRU(32, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, return_sequences=True))
