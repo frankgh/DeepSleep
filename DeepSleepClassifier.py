@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn.utils import compute_class_weight
 
 from keras.models import Sequential
-from keras.layers import Dense
+from keras.layers import Dense, Conv1D, BatchNormalization, LeakyReLU, MaxPooling1D, Flatten
 from keras.layers.recurrent import GRU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import RMSprop
@@ -226,8 +226,22 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
 
         model = Sequential()
-        model.add(GRU(32, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, return_sequences=True,
-                      input_shape=(15000, 3)))
+
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
+                         bias_initializer=bias_init, input_shape=(15000, 3)))
+        model.add(BatchNormalization())
+        model.add(LeakyReLU(alpha=0.3))
+
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
+                         bias_initializer=bias_init))
+        model.add(BatchNormalization())
+        model.add(LeakyReLU(alpha=0.3))
+
+        model.add(MaxPooling1D())
+        model.add(Flatten())
+
+        model.add(
+            GRU(32, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, return_sequences=True))
         model.add(GRU(16, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
