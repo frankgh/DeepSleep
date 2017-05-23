@@ -11,7 +11,7 @@ from sklearn.utils import compute_class_weight
 
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.layers.recurrent import LSTM
+from keras.layers.recurrent import GRU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import RMSprop
 from keras.regularizers import l2
@@ -226,8 +226,9 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
 
         model = Sequential()
-        model.add(LSTM(30, return_sequences=True, input_shape=(15000, 3)))
-        model.add(LSTM(10))
+        model.add(GRU(32, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, return_sequences=True,
+                      input_shape=(15000, 3)))
+        model.add(GRU(16, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge), activation='softmax'))
@@ -251,11 +252,14 @@ class DeepSleepClassifier(object):
             val = self.train_set[i:i + fold_size]
             train = np.concatenate((self.train_set[:i], self.train_set[i + fold_size:]))
             steps_per_epoch = count_steps(train, self.batch_size)
-            print 'Fold:', (k + 1), 'Samples:', count_samples(train), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
 
-            name = 'f' + str(k + 1) + '-e' + str(self.epochs) + '-lr' + str(self.lr) + '-dcy' + str(
-                self.decay) + '-m' + str(self.m) + '-reg' + str(self.ridge)
-            filepath = os.path.join(self.output_dir, 'DS_' + name + '_{epoch:03d}-{val_acc:.2f}.h5')
+            if self.verbose > 0:
+                print 'Fold:', (k + 1), 'Samples:', count_samples(
+                    train), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
+
+            name = 'DS_f{0:d}-e{1:d}-lr{2:g}-dcy{3:g}-m{4:g}-reg{5:g}'.format((k + 1), self.epochs, self.lr, self.decay,
+                                                                              self.m, self.ridge)
+            filepath = os.path.join(self.output_dir, name + '_{epoch:03d}-{val_acc:.2f}.h5')
             checkpointer = ModelCheckpoint(filepath=filepath, monitor='val_loss', verbose=self.verbose,
                                            save_best_only=True)
 
@@ -271,7 +275,10 @@ class DeepSleepClassifier(object):
             loss.extend(history.history['loss'])
             val_loss.extend(history.history['val_loss'])
 
-        print(history.history.keys())
+        if self.verbose > 0:
+            print('History keys:', history.history.keys())
+
+        model.save(os.path.join(self.output_dir, 'model.h5'))
         plot_accuracy(self.output_dir, acc, val_acc)
         plot_loss(self.output_dir, loss, val_loss)
         return model, history
@@ -286,7 +293,8 @@ class DeepSleepClassifier(object):
         y_pred_class = np.argmax(y_pred, axis=1)
         conf_mat = metrics.confusion_matrix(y_true_class, y_pred_class)
 
-        print "Loss: {} Accuracy: {}%".format(loss_and_metrics[0], loss_and_metrics[1] * 100)
+        if self.verbose > 0:
+            print "Loss: {} Accuracy: {}%".format(loss_and_metrics[0], loss_and_metrics[1] * 100)
         plot_confusion_matrix(self.output_dir, conf_mat, classes=['S1', 'S2', 'S3', 'A', 'R'])
         plot_roc_curve(self.output_dir, 5, y_true, y_pred)
 
