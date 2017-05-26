@@ -181,6 +181,7 @@ class DeepSleepClassifier(object):
                  ridge=2e-4,
                  patience=10,
                  kernel_initializer='he_normal',
+                 convolutional_layers=3,
                  verbose=2,
                  filters=25,
                  kernel_size=50):
@@ -198,6 +199,7 @@ class DeepSleepClassifier(object):
         self.verbose = verbose
         self.filters = filters
         self.kernel_size = kernel_size
+        self.convolutional_layers = convolutional_layers
 
         self.data = self.load_data()
         self.train_set, self.test_set = self.split_data()
@@ -231,14 +233,14 @@ class DeepSleepClassifier(object):
         model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
                          bias_initializer=bias_init, input_shape=(15000, 3)))
         model.add(BatchNormalization())
-        # model.add(Activation('relu'))
         model.add(LeakyReLU(alpha=0.3))
 
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
-                         bias_initializer=bias_init))
-        model.add(BatchNormalization())
-        # model.add(Activation('relu'))
-        model.add(LeakyReLU(alpha=0.3))
+        for layer_i in range(self.convolutional_layers - 1):
+            model.add(
+                Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
+                       bias_initializer=bias_init))
+            model.add(BatchNormalization())
+            model.add(LeakyReLU(alpha=0.3))
 
         model.add(MaxPooling1D())
         model.add(Flatten())
@@ -246,7 +248,6 @@ class DeepSleepClassifier(object):
         model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge)))
         model.add(BatchNormalization())
-        # model.add(Activation('relu'))
         model.add(LeakyReLU(alpha=0.3))
 
         model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
@@ -329,6 +330,7 @@ class DeepSleepClassifier(object):
             'kernel_initializer': self.kernel_initializer,
             'verbose': self.verbose,
             'filters': self.filters,
-            'kernel_size': self.kernel_size
+            'kernel_size': self.kernel_size,
+            'convolutional_layers': self.convolutional_layers
         }
         return dict(list(config.items()))
