@@ -253,12 +253,10 @@ class DeepSleepClassifier(object):
         model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge)))
         model.add(BatchNormalization())
-        # model.add(Activation('relu'))
         model.add(LeakyReLU(alpha=0.3))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(Activation('softmax'))
+                        kernel_regularizer=l2(self.ridge), activation='softmax'))
 
         model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -278,7 +276,9 @@ class DeepSleepClassifier(object):
             val = self.train_set[i:i + fold_size]
             train = np.concatenate((self.train_set[:i], self.train_set[i + fold_size:]))
             steps_per_epoch = count_steps(train, self.batch_size)
-            print 'Fold:', (k + 1), 'Samples:', count_samples(train), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
+            if self.verbose > 0:
+                print 'Fold:', (k + 1), 'Samples:', count_samples(
+                    train), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
 
             name = 'f' + str(k + 1) + '-e' + str(self.epochs) + '-lr' + str(self.lr) + '-dcy' + str(
                 self.decay) + '-m' + str(self.m) + '-reg' + str(self.ridge)
@@ -298,7 +298,8 @@ class DeepSleepClassifier(object):
             loss.extend(history.history['loss'])
             val_loss.extend(history.history['val_loss'])
 
-        print(history.history.keys())
+        if self.verbose > 0:
+            print(history.history.keys())
         plot_accuracy(self.output_dir, acc, val_acc)
         plot_loss(self.output_dir, loss, val_loss)
         return model, history
@@ -313,7 +314,8 @@ class DeepSleepClassifier(object):
         y_pred_class = np.argmax(y_pred, axis=1)
         conf_mat = metrics.confusion_matrix(y_true_class, y_pred_class)
 
-        print "Loss: {} Accuracy: {}%".format(loss_and_metrics[0], loss_and_metrics[1] * 100)
+        if self.verbose > 0:
+            print "Loss: {} Accuracy: {}%".format(loss_and_metrics[0], loss_and_metrics[1] * 100)
         plot_confusion_matrix(self.output_dir, conf_mat, classes=['S1', 'S2', 'S3', 'A', 'R'])
         plot_roc_curve(self.output_dir, 5, y_true, y_pred)
 
