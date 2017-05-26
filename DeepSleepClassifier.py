@@ -269,6 +269,8 @@ class DeepSleepClassifier(object):
         model.summary()
         fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
         class_weight = calculate_weights(self.train_set)
+        early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
+                                      mode='auto')
         acc, val_acc, loss, val_loss = [], [], [], []
 
         for k in range(2 * self.k_folds):
@@ -281,15 +283,15 @@ class DeepSleepClassifier(object):
             name = 'f' + str(k + 1) + '-e' + str(self.epochs) + '-lr' + str(self.lr) + '-dcy' + str(
                 self.decay) + '-m' + str(self.m) + '-reg' + str(self.ridge)
             filepath = os.path.join(self.output_dir, 'DS_' + name + '_{epoch:03d}-{val_acc:.2f}.h5')
-            checkpointer = ModelCheckpoint(filepath=filepath, monitor='val_loss', verbose=self.verbose,
-                                           save_best_only=True)
+            checkpoint = ModelCheckpoint(filepath=filepath, monitor='val_loss', verbose=self.verbose,
+                                         save_best_only=True)
 
             history = model.fit_generator(next_batch(train, self.batch_size), steps_per_epoch,
                                           epochs=self.epochs,
                                           verbose=self.verbose,
                                           class_weight=class_weight,
                                           validation_data=unfold(val),
-                                          callbacks=[checkpointer])
+                                          callbacks=[checkpoint, early_stopper])
 
             acc.extend(history.history['acc'])
             val_acc.extend(history.history['val_acc'])
