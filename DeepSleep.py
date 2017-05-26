@@ -53,7 +53,7 @@ if __name__ == "__main__":
     ap.add_argument('--init', dest='kernel_initializer', metavar='kernel_initializer', help='kernel initializer')
     ap.add_argument('--verbose', dest='verbose', metavar='verbose', help='verbosity level', type=int)
     ap.add_argument('--conv_layers', dest='conv_layers', metavar='convolutional layers',
-                    help='number of convolutional layers', type='int')
+                    help='number of convolutional layers', type=int)
     args = ap.parse_args()
     kwargs = get_kwargs(args)
 
