@@ -296,6 +296,7 @@ class DeepSleepClassifier(object):
             val_loss.extend(history.history['val_loss'])
 
         print(history.history.keys())
+        model.save(os.path.join(self.output_dir, 'model.h5'))
         plot_accuracy(self.output_dir, acc, val_acc)
         plot_loss(self.output_dir, loss, val_loss)
         return model, history
