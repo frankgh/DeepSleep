@@ -282,7 +282,9 @@ class DeepSleepClassifier(object):
 
             name = 'f' + str(k + 1) + '-e' + str(self.epochs) + '-lr' + str(self.lr) + '-dcy' + str(
                 self.decay) + '-m' + str(self.m) + '-reg' + str(self.ridge)
-            filepath = os.path.join(self.output_dir, 'DS_' + name + '_{epoch:03d}-{val_acc:.2f}.h5')
+            name = 'DS_f{0:d}-e{1:d}-lr{2:g}-dcy{3:g}-m{4:g}-reg{5:g}'.format((k + 1), self.epochs, self.lr, self.decay,
+                                                                              self.m, self.ridge)
+            filepath = os.path.join(self.output_dir, name + '_{epoch:03d}-{val_acc:.2f}.h5')
             checkpoint = ModelCheckpoint(filepath=filepath, monitor='val_loss', verbose=self.verbose,
                                          save_best_only=True)
 
