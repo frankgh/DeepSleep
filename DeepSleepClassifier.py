@@ -10,13 +10,10 @@ import matplotlib.pyplot as plt
 from sklearn.utils import compute_class_weight
 
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten
-from keras.layers.pooling import MaxPooling1D
-from keras.layers.convolutional import Conv1D
-from keras.layers.normalization import BatchNormalization
-from keras.layers.advanced_activations import LeakyReLU
+from keras.layers import Dense, Conv1D, BatchNormalization, LeakyReLU, MaxPooling1D, Flatten
+from keras.layers.recurrent import GRU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.optimizers import Adam
+from keras.optimizers import RMSprop
 from keras.regularizers import l2
 from keras.initializers import Constant
 
@@ -227,7 +224,7 @@ class DeepSleepClassifier(object):
     def split_data(self, split=0.1):
         """
         Split permutated data into train and test set split by the split value
-        :param self: 
+        # Arguments
         :param split: the split amount
         :return: the training and test sets
         """
@@ -236,8 +233,9 @@ class DeepSleepClassifier(object):
         return self.data[perm[i:]], self.data[perm[0:i]]  # return training, test sets
 
     def build_model(self):
-        adam = Adam(lr=self.lr, decay=self.decay)
+        optimizer = RMSprop(lr=self.lr, decay=self.decay)
         bias_init = Constant(value=0.1)
+
         model = Sequential()
 
         model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
@@ -248,26 +246,18 @@ class DeepSleepClassifier(object):
         model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
                          bias_initializer=bias_init))
         model.add(BatchNormalization())
-        # model.add(Activation('relu'))
         model.add(LeakyReLU(alpha=0.3))
 
         model.add(MaxPooling1D())
-        model.add(Flatten())
 
-        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
-
-        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+        model.add(
+            GRU(32, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, return_sequences=True))
+        model.add(GRU(16, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge), activation='softmax'))
 
-        model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
         return model
 
@@ -275,11 +265,13 @@ class DeepSleepClassifier(object):
         model = self.build_model()
         model.summary()
         fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
+        early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
+                                      mode='auto')
         class_weight = calculate_weights(self.train_set)
         acc, val_acc, loss, val_loss, splits = [], [], [], [], []
 
-        for k in range(4 * self.k_folds):
-            i = int(k * fold_size) % self.k_folds
+        for k in range(self.k_folds):
+            i = int(k * fold_size)
             val = self.train_set[i:i + fold_size]
             train = np.concatenate((self.train_set[:i], self.train_set[i + fold_size:]))
             steps_per_epoch = count_steps(train, self.batch_size)
@@ -287,9 +279,9 @@ class DeepSleepClassifier(object):
                 print 'Fold:', (k + 1), 'Samples:', count_samples(
                     train), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
 
-            name = 'f' + str(k + 1) + '-e' + str(self.epochs) + '-lr' + str(self.lr) + '-dcy' + str(
-                self.decay) + '-m' + str(self.m) + '-reg' + str(self.ridge)
-            filepath = os.path.join(self.output_dir, 'DS_' + name + '_{epoch:03d}-{val_acc:.2f}.h5')
+            name = 'DS_f{0:d}-e{1:d}-lr{2:g}-dcy{3:g}-m{4:g}-reg{5:g}'.format((k + 1), self.epochs, self.lr, self.decay,
+                                                                              self.m, self.ridge)
+            filepath = os.path.join(self.output_dir, name + '_{epoch:03d}-{val_acc:.2f}.h5')
             checkpointer = ModelCheckpoint(filepath=filepath, monitor='val_loss', verbose=self.verbose,
                                            save_best_only=True)
 
@@ -298,7 +290,7 @@ class DeepSleepClassifier(object):
                                           verbose=self.verbose,
                                           class_weight=class_weight,
                                           validation_data=unfold(val),
-                                          callbacks=[checkpointer])
+                                          callbacks=[checkpointer, early_stopper])
 
             acc.extend(history.history['acc'])
             val_acc.extend(history.history['val_acc'])
@@ -307,7 +299,8 @@ class DeepSleepClassifier(object):
             splits.append(len(history.history['acc']))
 
         if self.verbose > 0:
-            print(history.history.keys())
+            print('History keys:', history.history.keys())
+
         model.save(os.path.join(self.output_dir, 'model.h5'))
         plot_accuracy(self.output_dir, acc, val_acc, splits)
         plot_loss(self.output_dir, loss, val_loss, splits)
