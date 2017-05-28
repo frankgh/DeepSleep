@@ -131,7 +131,7 @@ def plot_roc_curve(output_dir, n_classes, y_true, y_pred):
     print "ROC AUC Score: ", roc_score
 
 
-def plot_accuracy(output_dir, acc, val_acc):
+def plot_accuracy(output_dir, acc, val_acc, splits):
     """
     Summarize history for accuracy
     :param output_dir: the output directory for the plot png file 
@@ -140,6 +140,12 @@ def plot_accuracy(output_dir, acc, val_acc):
     """
     plt.plot(acc, linewidth=1)
     plt.plot(val_acc, linestyle='dotted', linewidth=1)
+
+    total = 0
+    for n in splits:
+        total += n
+        plt.axvline(x=total, linestyle='dotted', linewidth=1, color='r')
+
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
@@ -150,7 +156,7 @@ def plot_accuracy(output_dir, acc, val_acc):
     plt.close()
 
 
-def plot_loss(output_dir, loss, val_loss):
+def plot_loss(output_dir, loss, val_loss, splits):
     """
     Summarize history for loss
     :param output_dir: the output directory for the plot png file
@@ -159,6 +165,12 @@ def plot_loss(output_dir, loss, val_loss):
     """
     plt.plot(loss, linewidth=1)
     plt.plot(val_loss, linestyle='dotted', linewidth=1)
+
+    total = 0
+    for n in splits:
+        total += n
+        plt.axvline(x=total, linestyle='dotted', linewidth=1, color='r')
+
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
@@ -269,7 +281,7 @@ class DeepSleepClassifier(object):
         class_weight = calculate_weights(self.train_set)
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
-        acc, val_acc, loss, val_loss = [], [], [], []
+        acc, val_acc, loss, val_loss, splits = [], [], [], [], []
 
         for k in range(2 * self.k_folds):
             i = int(k * fold_size) % self.k_folds
@@ -299,12 +311,13 @@ class DeepSleepClassifier(object):
             val_acc.extend(history.history['val_acc'])
             loss.extend(history.history['loss'])
             val_loss.extend(history.history['val_loss'])
+            splits.append(len(history.history['acc']))
 
         if self.verbose > 0:
             print(history.history.keys())
         model.save(os.path.join(self.output_dir, 'model.h5'))
-        plot_accuracy(self.output_dir, acc, val_acc)
-        plot_loss(self.output_dir, loss, val_loss)
+        plot_accuracy(self.output_dir, acc, val_acc, splits)
+        plot_loss(self.output_dir, loss, val_loss, splits)
         return model, history
 
     def test_model(self, model):
