@@ -276,8 +276,6 @@ class DeepSleepClassifier(object):
         model.summary()
         fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
         class_weight = calculate_weights(self.train_set)
-        early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
-                                      mode='auto')
         acc, val_acc, loss, val_loss, splits = [], [], [], [], []
 
         for k in range(2 * self.k_folds):
