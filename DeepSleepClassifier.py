@@ -278,7 +278,7 @@ class DeepSleepClassifier(object):
         class_weight = calculate_weights(self.train_set)
         acc, val_acc, loss, val_loss, splits = [], [], [], [], []
 
-        for k in range(2 * self.k_folds):
+        for k in range(4 * self.k_folds):
             i = int(k * fold_size) % self.k_folds
             val = self.train_set[i:i + fold_size]
             train = np.concatenate((self.train_set[:i], self.train_set[i + fold_size:]))
