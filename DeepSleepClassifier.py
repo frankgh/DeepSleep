@@ -131,7 +131,7 @@ def plot_roc_curve(output_dir, n_classes, y_true, y_pred):
     print "ROC AUC Score: ", roc_score
 
 
-def plot_accuracy(output_dir, acc, val_acc):
+def plot_accuracy(output_dir, acc, val_acc, splits):
     """
     Summarize history for accuracy
     :param output_dir: the output directory for the plot png file 
@@ -140,6 +140,12 @@ def plot_accuracy(output_dir, acc, val_acc):
     """
     plt.plot(acc, linewidth=1)
     plt.plot(val_acc, linestyle='dotted', linewidth=1)
+
+    total = 0
+    for n in splits:
+        total += n
+        plt.axvline(x=total, linestyle='dotted', linewidth=1, color='r')
+
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
@@ -150,7 +156,7 @@ def plot_accuracy(output_dir, acc, val_acc):
     plt.close()
 
 
-def plot_loss(output_dir, loss, val_loss):
+def plot_loss(output_dir, loss, val_loss, splits):
     """
     Summarize history for loss
     :param output_dir: the output directory for the plot png file
@@ -159,6 +165,12 @@ def plot_loss(output_dir, loss, val_loss):
     """
     plt.plot(loss, linewidth=1)
     plt.plot(val_loss, linestyle='dotted', linewidth=1)
+
+    total = 0
+    for n in splits:
+        total += n
+        plt.axvline(x=total, linestyle='dotted', linewidth=1, color='r')
+
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
@@ -231,7 +243,6 @@ class DeepSleepClassifier(object):
         model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
                          bias_initializer=bias_init, input_shape=(15000, 3)))
         model.add(BatchNormalization())
-        # model.add(Activation('relu'))
         model.add(LeakyReLU(alpha=0.3))
 
         model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
@@ -246,18 +257,15 @@ class DeepSleepClassifier(object):
         model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge)))
         model.add(BatchNormalization())
-        # model.add(Activation('relu'))
         model.add(LeakyReLU(alpha=0.3))
 
         model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge)))
         model.add(BatchNormalization())
-        # model.add(Activation('relu'))
         model.add(LeakyReLU(alpha=0.3))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(Activation('softmax'))
+                        kernel_regularizer=l2(self.ridge), activation='softmax'))
 
         model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -268,14 +276,18 @@ class DeepSleepClassifier(object):
         model.summary()
         fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
         class_weight = calculate_weights(self.train_set)
-        acc, val_acc, loss, val_loss = [], [], [], []
+        early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
+                                      mode='auto')
+        acc, val_acc, loss, val_loss, splits = [], [], [], [], []
 
         for k in range(2 * self.k_folds):
             i = int(k * fold_size) % self.k_folds
             val = self.train_set[i:i + fold_size]
             train = np.concatenate((self.train_set[:i], self.train_set[i + fold_size:]))
             steps_per_epoch = count_steps(train, self.batch_size)
-            print 'Fold:', (k + 1), 'Samples:', count_samples(train), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
+            if self.verbose > 0:
+                print 'Fold:', (k + 1), 'Samples:', count_samples(
+                    train), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
 
             name = 'f' + str(k + 1) + '-e' + str(self.epochs) + '-lr' + str(self.lr) + '-dcy' + str(
                 self.decay) + '-m' + str(self.m) + '-reg' + str(self.ridge)
@@ -294,11 +306,13 @@ class DeepSleepClassifier(object):
             val_acc.extend(history.history['val_acc'])
             loss.extend(history.history['loss'])
             val_loss.extend(history.history['val_loss'])
+            splits.append(len(history.history['acc']))
 
-        print(history.history.keys())
+        if self.verbose > 0:
+            print(history.history.keys())
         model.save(os.path.join(self.output_dir, 'model.h5'))
-        plot_accuracy(self.output_dir, acc, val_acc)
-        plot_loss(self.output_dir, loss, val_loss)
+        plot_accuracy(self.output_dir, acc, val_acc, splits)
+        plot_loss(self.output_dir, loss, val_loss, splits)
         return model, history
 
     def test_model(self, model):
@@ -311,7 +325,8 @@ class DeepSleepClassifier(object):
         y_pred_class = np.argmax(y_pred, axis=1)
         conf_mat = metrics.confusion_matrix(y_true_class, y_pred_class)
 
-        print "Loss: {} Accuracy: {}%".format(loss_and_metrics[0], loss_and_metrics[1] * 100)
+        if self.verbose > 0:
+            print "Loss: {} Accuracy: {}%".format(loss_and_metrics[0], loss_and_metrics[1] * 100)
         plot_confusion_matrix(self.output_dir, conf_mat, classes=['S1', 'S2', 'S3', 'A', 'R'])
         plot_roc_curve(self.output_dir, 5, y_true, y_pred)
 
