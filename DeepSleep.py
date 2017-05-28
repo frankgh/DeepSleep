@@ -33,6 +33,8 @@ def get_kwargs(args):
         _kwargs['kernel_initializer'] = args.kernel_initializer
     if args.verbose is not None:
         _kwargs['verbose'] = args.verbose
+    if args.conv_layers is not None:
+        _kwargs['convolutional_layers'] = args.conv_layers
     return _kwargs
 
 
@@ -50,6 +52,8 @@ if __name__ == "__main__":
     ap.add_argument('--patience', dest='patience', metavar='patience', help='patience for early stopping', type=int)
     ap.add_argument('--init', dest='kernel_initializer', metavar='kernel_initializer', help='kernel initializer')
     ap.add_argument('--verbose', dest='verbose', metavar='verbose', help='verbosity level', type=int)
+    ap.add_argument('--conv_layers', dest='conv_layers', metavar='convolutional layers',
+                    help='number of convolutional layers', type=int)
     args = ap.parse_args()
     kwargs = get_kwargs(args)
 
