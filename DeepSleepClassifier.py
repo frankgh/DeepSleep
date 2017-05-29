@@ -146,7 +146,7 @@ def plot_accuracy(output_dir, acc, val_acc, splits):
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
-    plt.legend(['train', 'validation'], loc='bottom right')
+    plt.legend(['train', 'validation'], loc='lower right')
     plt.savefig(os.path.join(output_dir, 'accuracy.png'), dpi=100)
     plt.clf()
     plt.cla()
