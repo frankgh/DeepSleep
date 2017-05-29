@@ -251,8 +251,8 @@ class DeepSleepClassifier(object):
         model.add(MaxPooling1D())
 
         model.add(
-            GRU(32, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, return_sequences=True))
-        model.add(GRU(16, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
+            GRU(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, return_sequences=True))
+        model.add(GRU(256, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge), activation='softmax'))
