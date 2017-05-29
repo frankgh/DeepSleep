@@ -135,8 +135,8 @@ def plot_accuracy(output_dir, acc, val_acc, splits):
     :param acc: training accuracy list
     :param val_acc: validation accuracy list
     """
-    plt.plot(acc, linewidth=1)
-    plt.plot(val_acc, linestyle='dotted', linewidth=1)
+    plt.plot(acc, linewidth=2)
+    plt.plot(val_acc, linestyle='dotted', linewidth=2)
 
     total = 0
     for n in splits:
@@ -160,8 +160,8 @@ def plot_loss(output_dir, loss, val_loss, splits):
     :param loss: training loss history
     :param val_loss: validation loss history
     """
-    plt.plot(loss, linewidth=1)
-    plt.plot(val_loss, linestyle='dotted', linewidth=1)
+    plt.plot(loss, linewidth=2)
+    plt.plot(val_loss, linestyle='dotted', linewidth=2)
 
     total = 0
     for n in splits:
@@ -191,6 +191,7 @@ class DeepSleepClassifier(object):
                  patience=10,
                  kernel_initializer='he_normal',
                  verbose=2,
+                 iterations=1,
                  filters=25,
                  kernel_size=50):
         self.data_dir = data_dir
@@ -207,6 +208,7 @@ class DeepSleepClassifier(object):
         self.verbose = verbose
         self.filters = filters
         self.kernel_size = kernel_size
+        self.iterations = iterations
 
         self.data = self.load_data()
         self.train_set, self.test_set = self.split_data()
@@ -270,7 +272,7 @@ class DeepSleepClassifier(object):
         class_weight = calculate_weights(self.train_set)
         acc, val_acc, loss, val_loss, splits = [], [], [], [], []
 
-        for k in range(self.k_folds):
+        for k in range(self.iterations * self.k_folds):
             i = int(k * fold_size)
             val = self.train_set[i:i + fold_size]
             train = np.concatenate((self.train_set[:i], self.train_set[i + fold_size:]))
@@ -336,6 +338,7 @@ class DeepSleepClassifier(object):
             'kernel_initializer': self.kernel_initializer,
             'verbose': self.verbose,
             'filters': self.filters,
-            'kernel_size': self.kernel_size
+            'kernel_size': self.kernel_size,
+            'iterations': self.iterations
         }
         return dict(list(config.items()))
