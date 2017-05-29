@@ -35,6 +35,8 @@ def get_kwargs(args):
         _kwargs['verbose'] = args.verbose
     if args.conv_layers is not None:
         _kwargs['convolutional_layers'] = args.conv_layers
+    if args.iter is not None:
+        _kwargs['iterations'] = args.iter
     return _kwargs
 
 
@@ -54,6 +56,7 @@ if __name__ == "__main__":
     ap.add_argument('--verbose', dest='verbose', metavar='verbose', help='verbosity level', type=int)
     ap.add_argument('--conv_layers', dest='conv_layers', metavar='convolutional layers',
                     help='number of convolutional layers', type=int)
+    ap.add_argument('--iter', dest='iter', metavar='iterations', help='number of iterations', type=int)
     args = ap.parse_args()
     kwargs = get_kwargs(args)
 
