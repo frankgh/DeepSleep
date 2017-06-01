@@ -244,7 +244,7 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
 
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
+        model.add(Conv1D(64, 500, padding='valid', kernel_initializer=self.kernel_initializer,
                          bias_initializer=bias_init, input_shape=(15000, 3)))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.3))
