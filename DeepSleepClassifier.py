@@ -240,7 +240,7 @@ class DeepSleepClassifier(object):
         return self.data[perm[i:]], self.data[perm[0:i]]  # return training, test sets
 
     def build_model(self):
-        adam = Adam(lr=self.lr, decay=self.decay)
+        optimizer = Adam(lr=self.lr, decay=self.decay)
         bias_init = Constant(value=0.1)
         model = Sequential()
 
@@ -272,7 +272,7 @@ class DeepSleepClassifier(object):
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge), activation='softmax'))
 
-        model.compile(optimizer=adam, loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
         return model
 
