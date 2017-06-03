@@ -257,24 +257,24 @@ class DeepSleepClassifier(object):
         model = Sequential()
 
         model.add(
-            Conv1D(self.filters, self.kernel_initializer, padding='valid', trainable=False, input_shape=(15000, 3),
+            Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, input_shape=(15000, 3),
                    name='conv1d_1'))
         model.add(BatchNormalization(name='batch_normalization_1', trainable=False))
         model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_1', trainable=False))
 
-        model.add(Conv1D(self.filters, self.kernel_initializer, padding='valid', trainable=False, name='conv1d_2'))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='conv1d_2'))
         model.add(BatchNormalization(name='batch_normalization_2', trainable=False))
         model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_2', trainable=False))
 
-        model.add(Conv1D(self.filters, self.kernel_initializer, padding='valid', trainable=False, name='conv1d_3'))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='conv1d_3'))
         model.add(BatchNormalization(name='batch_normalization_3', trainable=False))
         model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_3', trainable=False))
 
-        model.add(Conv1D(self.filters, self.kernel_initializer, padding='valid', trainable=False, name='conv1d_4'))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='conv1d_4'))
         model.add(BatchNormalization(name='batch_normalization_4', trainable=False))
         model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_4', trainable=False))
 
-        model.add(Conv1D(self.filters, self.kernel_initializer, padding='valid', trainable=False, name='conv1d_5'))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='conv1d_5'))
         model.add(BatchNormalization(name='batch_normalization_5', trainable=False))
         model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_5', trainable=False))
 
