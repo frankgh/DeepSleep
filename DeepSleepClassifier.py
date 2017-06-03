@@ -10,14 +10,13 @@ import matplotlib.pyplot as plt
 from sklearn.utils import compute_class_weight
 
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten
+from keras.layers import Dense, LSTM
 from keras.layers.pooling import MaxPooling1D
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.optimizers import Adam
-from keras.regularizers import l2
+from keras.optimizers import RMSprop
 from keras.initializers import Constant
 
 matplotlib.use('Agg')
@@ -189,6 +188,7 @@ def plot_loss(output_dir, loss, val_loss, splits):
 class DeepSleepClassifier(object):
     def __init__(self, data_dir,
                  output_dir,
+                 input_weights_filepath,
                  k_folds=9,
                  batch_size=192,
                  epochs=100,
@@ -205,6 +205,7 @@ class DeepSleepClassifier(object):
                  kernel_size=50):
         self.data_dir = data_dir
         self.output_dir = output_dir
+        self.input_weights_filepath = input_weights_filepath
         self.k_folds = k_folds
         self.batch_size = batch_size
         self.epochs = epochs
@@ -251,37 +252,44 @@ class DeepSleepClassifier(object):
         return self.data[perm[i:]], self.data[perm[0:i]]  # return training, test sets
 
     def build_model(self):
-        optimizer = Adam(lr=self.lr, decay=self.decay)
+        optimizer = RMSprop(lr=self.lr, decay=self.decay)
         bias_init = Constant(value=0.1)
         model = Sequential()
 
-        model.add(Conv1D(64, 500, padding='valid', kernel_initializer=self.kernel_initializer,
-                         bias_initializer=bias_init, input_shape=(15000, 3)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+        model.add(
+            Conv1D(self.filters, self.kernel_initializer, padding='valid', trainable=False, input_shape=(15000, 3),
+                   name='conv1d_1'))
+        model.add(BatchNormalization(name='batch_normalization_1', trainable=False))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_1', trainable=False))
 
-        for layer_i in range(self.convolutional_layers - 1):
-            model.add(
-                Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
-                       bias_initializer=bias_init))
-            model.add(BatchNormalization())
-            model.add(LeakyReLU(alpha=0.3))
+        model.add(Conv1D(self.filters, self.kernel_initializer, padding='valid', trainable=False, name='conv1d_2'))
+        model.add(BatchNormalization(name='batch_normalization_2', trainable=False))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_2', trainable=False))
 
-        model.add(MaxPooling1D())
-        model.add(Flatten())
+        model.add(Conv1D(self.filters, self.kernel_initializer, padding='valid', trainable=False, name='conv1d_3'))
+        model.add(BatchNormalization(name='batch_normalization_3', trainable=False))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_3', trainable=False))
 
-        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+        model.add(Conv1D(self.filters, self.kernel_initializer, padding='valid', trainable=False, name='conv1d_4'))
+        model.add(BatchNormalization(name='batch_normalization_4', trainable=False))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_4', trainable=False))
 
-        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+        model.add(Conv1D(self.filters, self.kernel_initializer, padding='valid', trainable=False, name='conv1d_5'))
+        model.add(BatchNormalization(name='batch_normalization_5', trainable=False))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_5', trainable=False))
 
-        model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge), activation='softmax'))
+        model.add(MaxPooling1D(name='max_pooling1d_1', trainable=False))
+
+        model.add(LSTM(128, return_sequences=True, name='new_lstm_1'))
+        model.add(LSTM(64, name='new_lstm_2'))
+
+        model.add(
+            Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, name='new_dense_1'))
+        model.add(BatchNormalization(name='new_batch_normalization_dense_1'))
+        model.add(LeakyReLU(alpha=0.3, name='new_leaky_re_lu_dense_1'))
+
+        model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax',
+                        name='new_dense_2'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -289,6 +297,8 @@ class DeepSleepClassifier(object):
 
     def train_model(self):
         model = self.build_model()
+        # '/home/afguerrerohernan/work/DeepSleep/exp012/DS_f14-e100-lr0.0001-dcy0.8-m0.5-reg0.0002_001-0.90.h5',
+        model.load_weights(self.input_weights_filepath, by_name=True)
         model.summary()
         fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
@@ -350,6 +360,7 @@ class DeepSleepClassifier(object):
         config = {
             'data_dir': self.data_dir,
             'output_dir': self.output_dir,
+            'input_weights_filepath': self.input_weights_filepath,
             'k_folds': self.k_folds,
             'batch_size': self.batch_size,
             'epochs': self.epochs,
