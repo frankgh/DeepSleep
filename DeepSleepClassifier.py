@@ -34,6 +34,7 @@ def unfold(data, verbose=0):
     x, y = np.array(data[0]['X']), np.array(data[0]['Y'])
     if verbose > 0:
         print 'Unfolding: '
+        print ' -', data[0]['name']
     for item in data[1:]:
         x = np.concatenate((x, item['X']))
         y = np.concatenate((y, item['Y']))
