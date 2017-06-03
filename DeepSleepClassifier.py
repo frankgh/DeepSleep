@@ -30,11 +30,15 @@ def next_batch(data, size):
             yield (item['X'][perm[i:i + size]], item['Y'][perm[i:i + size]])
 
 
-def unfold(data):
+def unfold(data, verbose=0):
     x, y = np.array(data[0]['X']), np.array(data[0]['Y'])
+    if verbose > 0:
+        print 'Unfolding: '
     for item in data[1:]:
         x = np.concatenate((x, item['X']))
         y = np.concatenate((y, item['Y']))
+        if verbose > 0:
+            print ' -', item['name']
     return x, y
 
 
@@ -237,6 +241,12 @@ class DeepSleepClassifier(object):
         """
         i = int(len(self.data) * split)
         perm = np.random.permutation(len(self.data))  # permute data
+
+        if self.verbose > 0:
+            print 'Test elements:'
+            for item in self.data[perm[0:i]]:
+                print ' -', item['name']
+
         return self.data[perm[i:]], self.data[perm[0:i]]  # return training, test sets
 
     def build_model(self):
@@ -304,7 +314,7 @@ class DeepSleepClassifier(object):
                                           epochs=self.epochs,
                                           verbose=self.verbose,
                                           class_weight=class_weight,
-                                          validation_data=unfold(val),
+                                          validation_data=unfold(val, self.verbose),
                                           callbacks=[checkpointer, early_stopper])
 
             acc.extend(history.history['acc'])
