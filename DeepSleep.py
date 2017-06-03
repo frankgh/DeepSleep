@@ -41,7 +41,7 @@ def get_kwargs(args):
 
 
 if __name__ == "__main__":
-    ap = ArgumentParser(description='Train the deep sleep neural network')
+    ap = ArgumentParser(description='Train the Deep Sleep neural network')
     ap.add_argument('-i', dest='data_dir', metavar='data_dir', help='path for the npz patient data', required=True)
     ap.add_argument('-o', dest='output_dir', metavar='output_dir', help='path for the output directory', required=True)
     ap.add_argument('--folds', dest='k_folds', metavar='k_folds', help='number of folds for training', type=int)
