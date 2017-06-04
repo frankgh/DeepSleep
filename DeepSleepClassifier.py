@@ -293,6 +293,10 @@ class DeepSleepClassifier(object):
     def train_model(self):
         model = self.build_model()
         # '/home/afguerrerohernan/work/DeepSleep/exp012/DS_f14-e100-lr0.0001-dcy0.8-m0.5-reg0.0002_001-0.90.h5',
+
+        if self.verbose > 0:
+            print 'Loading weights from ' + self.input_weights_filepath
+
         model.load_weights(self.input_weights_filepath, by_name=True)
         model.summary()
         fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
