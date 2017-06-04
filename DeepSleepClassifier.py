@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn.utils import compute_class_weight
 
 from keras.models import Sequential
-from keras.layers import Dense, LSTM
+from keras.layers import Dense, LSTM, Flatten
 from keras.layers.pooling import MaxPooling1D
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
@@ -279,14 +279,10 @@ class DeepSleepClassifier(object):
         model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_5', trainable=False))
 
         model.add(MaxPooling1D(name='max_pooling1d_1', trainable=False))
+        model.add(Flatten(name='flatten_1', trainable=False))
 
-        model.add(LSTM(128, return_sequences=True, name='new_lstm_1'))
-        model.add(LSTM(64, name='new_lstm_2'))
-
-        model.add(
-            Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, name='new_dense_1'))
-        model.add(BatchNormalization(name='new_batch_normalization_dense_1'))
-        model.add(LeakyReLU(alpha=0.3, name='new_leaky_re_lu_dense_1'))
+        model.add(LSTM(1024, return_sequences=True, name='new_lstm_1'))
+        model.add(LSTM(1024, name='new_lstm_2'))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax',
                         name='new_dense_2'))
