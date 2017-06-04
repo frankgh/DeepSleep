@@ -280,8 +280,13 @@ class DeepSleepClassifier(object):
 
         model.add(MaxPooling1D(name='max_pooling1d_1', trainable=False))
 
-        model.add(LSTM(1024, return_sequences=True, name='new_lstm_1', implementation=2))
-        model.add(LSTM(1024, name='new_lstm_2', implementation=2))
+        leaky_relu_lstm_1 = LeakyReLU(alpha=0.3, name='new_leaky_re_lu_lstm_1')
+        leaky_relu_lstm_2 = LeakyReLU(alpha=0.3, name='new_leaky_re_lu_lstm_2')
+
+        model.add(LSTM(256, return_sequences=True, name='new_lstm_1', implementation=2, activation=leaky_relu_lstm_1,
+                       dropout=0.2, recurrent_dropout=0.2))
+        model.add(LSTM(256, name='new_lstm_2', implementation=2, activation=leaky_relu_lstm_2, dropout=0.2,
+                       recurrent_dropout=0.2))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax',
                         name='new_dense_2'))
