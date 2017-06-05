@@ -23,16 +23,16 @@ def next_batch(data, size):
     for item in itertools.cycle(data):
         perm = np.random.permutation(item['Y'].shape[0])
         for i in np.arange(0, item['Y'].shape[0], size):
-            yield (item['X'][perm[i:i + size]], item['Y'][perm[i:i + size]])
+            yield (item['Z'][perm[i:i + size]], item['Y'][perm[i:i + size]])
 
 
 def unfold(data, verbose=0):
-    x, y = np.array(data[0]['X']), np.array(data[0]['Y'])
+    x, y = np.array(data[0]['Z']), np.array(data[0]['Y'])
     if verbose > 0:
         print 'Unfolding: '
         print ' -', data[0]['name']
     for item in data[1:]:
-        x = np.concatenate((x, item['X']))
+        x = np.concatenate((x, item['Z']))
         y = np.concatenate((y, item['Y']))
         if verbose > 0:
             print ' -', item['name']
