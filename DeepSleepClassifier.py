@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn.utils import compute_class_weight
 
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten
+from keras.layers import Dense, Activation, Flatten, LSTM
 from keras.layers.pooling import MaxPooling1D
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
@@ -255,33 +255,12 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
 
-        model.add(Conv1D(64, 500, padding='valid', kernel_initializer=self.kernel_initializer,
-                         bias_initializer=bias_init, input_shape=(15000, 3)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+        model.add(LSTM(1024, implementation=2, activation=LeakyReLU(alpha=0.3),
+                       return_sequences=True, input_shape=(7377, 25)))
+        model.add(LSTM(1024, implementation=2, activation=LeakyReLU(alpha=0.3)))
 
-        for layer_i in range(self.convolutional_layers - 1):
-            model.add(
-                Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
-                       bias_initializer=bias_init))
-            model.add(BatchNormalization())
-            model.add(LeakyReLU(alpha=0.3))
-
-        model.add(MaxPooling1D())
-        model.add(Flatten())
-
-        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
-
-        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
-
-        model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge), activation='softmax'))
+        model.add(
+            Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
