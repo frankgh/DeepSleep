@@ -10,14 +10,10 @@ import matplotlib.pyplot as plt
 from sklearn.utils import compute_class_weight
 
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, LSTM
-from keras.layers.pooling import MaxPooling1D
-from keras.layers.convolutional import Conv1D
-from keras.layers.normalization import BatchNormalization
+from keras.layers import Dense, LSTM
 from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
-from keras.regularizers import l2
 from keras.initializers import Constant
 
 matplotlib.use('Agg')
