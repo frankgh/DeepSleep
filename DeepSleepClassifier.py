@@ -251,9 +251,9 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
 
-        model.add(LSTM(self.kernel_size, implementation=2, activation=LeakyReLU(alpha=0.3),
+        model.add(LSTM(self.kernel_size, implementation=2,
                        return_sequences=True, input_shape=(7377, 25)))
-        model.add(LSTM(self.kernel_size, implementation=2, activation=LeakyReLU(alpha=0.3)))
+        model.add(LSTM(self.kernel_size, implementation=2))
 
         model.add(
             Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax'))
