@@ -277,11 +277,11 @@ class DeepSleepClassifier(object):
         model.add(BatchNormalization(name='batch_normalization_5'))
         model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_5'))
 
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', name='new_conv1d_6'))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='same', name='new_conv1d_6'))
         model.add(BatchNormalization(name='new_batch_normalization_6'))
         model.add(LeakyReLU(alpha=0.3, name='new_leaky_re_lu_6'))
 
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', name='new_conv1d_7'))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='same', name='new_conv1d_7'))
         model.add(BatchNormalization(name='new_batch_normalization_7'))
         model.add(LeakyReLU(alpha=0.3, name='new_leaky_re_lu_7'))
 
