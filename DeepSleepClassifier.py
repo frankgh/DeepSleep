@@ -17,6 +17,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.layers.advanced_activations import LeakyReLU
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import RMSprop
+from keras.regularizers import l2
 from keras.initializers import Constant
 
 matplotlib.use('Agg')
@@ -278,18 +279,29 @@ class DeepSleepClassifier(object):
         model.add(BatchNormalization(name='batch_normalization_5', trainable=False))
         model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_5', trainable=False))
 
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='new_conv1d_6'))
+        model.add(BatchNormalization(name='new_batch_normalization_6', trainable=False))
+        model.add(LeakyReLU(alpha=0.3, name='new_leaky_re_lu_6', trainable=False))
+
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='new_conv1d_7'))
+        model.add(BatchNormalization(name='new_batch_normalization_7', trainable=False))
+        model.add(LeakyReLU(alpha=0.3, name='new_leaky_re_lu_7', trainable=False))
+
         model.add(MaxPooling1D(name='max_pooling1d_1', trainable=False))
+        model.add(Flatten(name='flatten_1'))
 
-        leaky_relu_lstm_1 = LeakyReLU(alpha=0.3)
-        leaky_relu_lstm_2 = LeakyReLU(alpha=0.3)
+        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                        kernel_regularizer=l2(self.ridge), name='dense_1'))
+        model.add(BatchNormalization(name='batch_normalization_6'))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_6'))
 
-        model.add(LSTM(256, return_sequences=True, name='new_lstm_1', implementation=2, activation=leaky_relu_lstm_1,
-                       dropout=0.2, recurrent_dropout=0.2))
-        model.add(LSTM(256, name='new_lstm_2', implementation=2, activation=leaky_relu_lstm_2, dropout=0.2,
-                       recurrent_dropout=0.2))
+        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                        kernel_regularizer=l2(self.ridge), name='dense_2'))
+        model.add(BatchNormalization(name='batch_normalization_7'))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_7'))
 
-        model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax',
-                        name='new_dense_2'))
+        model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                        kernel_regularizer=l2(self.ridge), activation='softmax', name='dense_3'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -297,7 +309,6 @@ class DeepSleepClassifier(object):
 
     def train_model(self):
         model = self.build_model()
-        # '/home/afguerrerohernan/work/DeepSleep/exp012/DS_f14-e100-lr0.0001-dcy0.8-m0.5-reg0.0002_001-0.90.h5',
 
         if self.verbose > 0:
             print 'Loading weights from ' + self.input_weights_filepath
