@@ -202,6 +202,7 @@ class DeepSleepClassifier(object):
                  verbose=2,
                  iterations=1,
                  filters=25,
+                 strides=30,
                  kernel_size=50):
         self.data_dir = data_dir
         self.output_dir = output_dir
@@ -216,6 +217,7 @@ class DeepSleepClassifier(object):
         self.kernel_initializer = kernel_initializer
         self.verbose = verbose
         self.filters = filters
+        self.strides = strides
         self.kernel_size = kernel_size
         self.iterations = iterations
         self.convolutional_layers = convolutional_layers
@@ -255,15 +257,15 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
 
-        model.add(Conv1D(64, 500, padding='valid', kernel_initializer=self.kernel_initializer,
+        model.add(Conv1D(128, 500, strides=50, padding='same', kernel_initializer=self.kernel_initializer,
                          bias_initializer=bias_init, input_shape=(15000, 3)))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.3))
 
         for layer_i in range(self.convolutional_layers - 1):
             model.add(
-                Conv1D(self.filters, self.kernel_size, padding='valid', kernel_initializer=self.kernel_initializer,
-                       bias_initializer=bias_init))
+                Conv1D(self.filters, self.kernel_size, strides=self.strides, padding='same',
+                       kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
             model.add(BatchNormalization())
             model.add(LeakyReLU(alpha=0.3))
 
@@ -289,7 +291,10 @@ class DeepSleepClassifier(object):
 
     def train_model(self):
         model = self.build_model()
-        model.summary()
+
+        if self.verbose > 0:
+            model.summary()
+
         fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
@@ -362,6 +367,7 @@ class DeepSleepClassifier(object):
             'verbose': self.verbose,
             'filters': self.filters,
             'kernel_size': self.kernel_size,
+            'strides': self.strides,
             'iterations': self.iterations,
             'convolutional_layers': self.convolutional_layers
         }

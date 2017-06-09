@@ -7,8 +7,8 @@ from argparse import ArgumentParser
 from DeepSleepClassifier import DeepSleepClassifier
 
 # For reproducibility
-random.seed(8512)
-numpy.random.seed(8512)
+# random.seed(8512)
+# numpy.random.seed(8512)
 
 
 def get_kwargs(args):
