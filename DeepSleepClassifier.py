@@ -310,9 +310,9 @@ class DeepSleepClassifier(object):
 
         if self.verbose > 0:
             print 'Loading weights from ' + self.input_weights_filepath
+            model.summary()
 
         model.load_weights(self.input_weights_filepath, by_name=True)
-        model.summary()
         fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
