@@ -257,37 +257,35 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
 
-        model.add(
-            Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, input_shape=(15000, 3),
-                   name='conv1d_1'))
-        model.add(BatchNormalization(name='batch_normalization_1', trainable=False))
-        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_1', trainable=False))
+        model.add(Conv1D(64, 500, padding='valid', input_shape=(15000, 3), name='conv1d_1'))
+        model.add(BatchNormalization(name='batch_normalization_1'))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_1'))
 
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='conv1d_2'))
-        model.add(BatchNormalization(name='batch_normalization_2', trainable=False))
-        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_2', trainable=False))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', name='conv1d_2'))
+        model.add(BatchNormalization(name='batch_normalization_2'))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_2'))
 
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='conv1d_3'))
-        model.add(BatchNormalization(name='batch_normalization_3', trainable=False))
-        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_3', trainable=False))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', name='conv1d_3'))
+        model.add(BatchNormalization(name='batch_normalization_3'))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_3'))
 
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='conv1d_4'))
-        model.add(BatchNormalization(name='batch_normalization_4', trainable=False))
-        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_4', trainable=False))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', name='conv1d_4'))
+        model.add(BatchNormalization(name='batch_normalization_4'))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_4'))
 
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='conv1d_5'))
-        model.add(BatchNormalization(name='batch_normalization_5', trainable=False))
-        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_5', trainable=False))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', name='conv1d_5'))
+        model.add(BatchNormalization(name='batch_normalization_5'))
+        model.add(LeakyReLU(alpha=0.3, name='leaky_re_lu_5'))
 
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='new_conv1d_6'))
-        model.add(BatchNormalization(name='new_batch_normalization_6', trainable=False))
-        model.add(LeakyReLU(alpha=0.3, name='new_leaky_re_lu_6', trainable=False))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', name='new_conv1d_6'))
+        model.add(BatchNormalization(name='new_batch_normalization_6'))
+        model.add(LeakyReLU(alpha=0.3, name='new_leaky_re_lu_6'))
 
-        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', trainable=False, name='new_conv1d_7'))
-        model.add(BatchNormalization(name='new_batch_normalization_7', trainable=False))
-        model.add(LeakyReLU(alpha=0.3, name='new_leaky_re_lu_7', trainable=False))
+        model.add(Conv1D(self.filters, self.kernel_size, padding='valid', name='new_conv1d_7'))
+        model.add(BatchNormalization(name='new_batch_normalization_7'))
+        model.add(LeakyReLU(alpha=0.3, name='new_leaky_re_lu_7'))
 
-        model.add(MaxPooling1D(name='max_pooling1d_1', trainable=False))
+        model.add(MaxPooling1D(name='max_pooling1d_1'))
         model.add(Flatten(name='flatten_1'))
 
         model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
