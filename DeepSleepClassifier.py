@@ -194,7 +194,9 @@ class DeepSleepClassifier(object):
 
     def test_model(self, model):
         # Test model on test set
-        test_x, y_true = unfold(self.test_data)
+        if self.verbose > 0:
+            print 'Testing model'
+        test_x, y_true = unfold(self.test_data, self.verbose)
         loss_and_metrics = model.evaluate(test_x, y_true, batch_size=self.batch_size, verbose=self.verbose)
         y_pred = model.predict(test_x, batch_size=self.batch_size, verbose=self.verbose)
 
