@@ -1,22 +1,19 @@
-import os
 import glob
-import numpy as np
 import itertools
-import sklearn.metrics as metrics
-import matplotlib.pyplot as plt
+import os
 
-from sklearn.utils import compute_class_weight
-
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten
-from keras.layers.pooling import MaxPooling1D
+import numpy as np
+from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.initializers import Constant
+from keras.layers import Dense, Flatten
+from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
-from keras.layers.advanced_activations import LeakyReLU
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.layers.pooling import MaxPooling1D
+from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.regularizers import l2
-from keras.initializers import Constant
+from sklearn.utils import compute_class_weight
 
 
 def next_batch(data, size):
@@ -55,126 +52,10 @@ def calculate_weights(data):
     return compute_class_weight('balanced', np.arange(5), y_1)
 
 
-def plot_confusion_matrix(output_dir, cm, classes,
-                          normalize=False,
-                          title='Confusion matrix',
-                          cmap=plt.cm.Blues):
-    """
-    This function prints and plots the confusion matrix.
-    Normalization can be applied by setting `normalize=True`.
-    """
-    plt.imshow(cm, interpolation='nearest', cmap=cmap)
-    plt.title(title)
-    plt.colorbar()
-    tick_marks = np.arange(len(classes))
-    plt.xticks(tick_marks, classes, rotation=45)
-    plt.yticks(tick_marks, classes)
-
-    if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        print("Normalized confusion matrix")
-    else:
-        print('Confusion matrix, without normalization')
-
-    print(cm)
-
-    thresh = cm.max() / 2.
-    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
-        plt.text(j, i, cm[i, j],
-                 horizontalalignment="center",
-                 color="white" if cm[i, j] > thresh else "black")
-
-    plt.tight_layout()
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-    plt.savefig(os.path.join(output_dir, 'conf_mat.png'), dpi=100)
-    plt.clf()
-    plt.cla()
-    plt.close()
-
-
-def plot_roc_curve(output_dir, n_classes, y_true, y_pred):
-    """
-    Compute ROC curve and ROC area for each class
-    :param output_dir: where to save the png image file 
-    :param n_classes: number of classes
-    :param y_true: the true values
-    :param y_pred: predicted values
-    """
-    fpr = dict()
-    tpr = dict()
-    roc_auc = dict()
-
-    for i in range(n_classes):
-        fpr[i], tpr[i], _ = metrics.roc_curve(y_true[:, i], y_pred[:, i])
-        roc_auc[i] = metrics.auc(fpr[i], tpr[i])
-
-    # Compute micro-average ROC curve and ROC area
-    fpr["micro"], tpr["micro"], _ = metrics.roc_curve(y_true.ravel(), y_pred.ravel())
-    roc_auc["micro"] = metrics.auc(fpr["micro"], tpr["micro"])
-
-    plt.figure()
-    lw = 2
-    plt.plot(fpr["micro"], tpr["micro"], color='darkorange',
-             lw=lw, label='ROC curve (area = %0.2f)' % roc_auc["micro"])
-    plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.legend(loc="lower right")
-    plt.savefig(os.path.join(output_dir, 'roc_score.png'), dpi=100)
-    plt.clf()
-    plt.cla()
-    plt.close()
-
-    roc_score = metrics.roc_auc_score(y_true, y_pred)
-    print "ROC AUC Score: ", roc_score
-
-
-def plot_accuracy(output_dir, acc, val_acc):
-    """
-    Summarize history for accuracy
-    :param output_dir: the output directory for the plot png file 
-    :param acc: training accuracy list
-    :param val_acc: validation accuracy list
-    """
-    plt.plot(acc, linewidth=2)
-    plt.plot(val_acc, linestyle='dotted', linewidth=2)
-    plt.title('model accuracy')
-    plt.ylabel('accuracy')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'validation'], loc='bottom right')
-    plt.savefig(os.path.join(output_dir, 'accuracy.png'), dpi=100)
-    plt.clf()
-    plt.cla()
-    plt.close()
-
-
-def plot_loss(output_dir, loss, val_loss):
-    """
-    Summarize history for loss
-    :param output_dir: the output directory for the plot png file
-    :param loss: training loss history
-    :param val_loss: validation loss history
-    """
-    plt.plot(loss, linewidth=2)
-    plt.plot(val_loss, linestyle='dotted', linewidth=2)
-    plt.title('model loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'validation'], loc='upper right')
-    plt.savefig(os.path.join(output_dir, 'loss.png'), dpi=100)
-    plt.clf()
-    plt.cla()
-    plt.close()
-
-
 class DeepSleepClassifier(object):
     def __init__(self, data_dir,
                  output_dir,
                  test_dir,
-                 k_folds=9,
                  batch_size=192,
                  epochs=100,
                  lr=1e-5,
@@ -187,12 +68,11 @@ class DeepSleepClassifier(object):
                  verbose=2,
                  iterations=1,
                  filters=25,
-                 strides=30,
+                 strides=5,
                  kernel_size=50):
         self.data_dir = data_dir
         self.output_dir = output_dir
         self.test_dir = test_dir
-        self.k_folds = k_folds
         self.batch_size = batch_size
         self.epochs = epochs
         self.lr = lr
@@ -290,10 +170,9 @@ class DeepSleepClassifier(object):
         if self.verbose > 0:
             print 'Samples:', count_samples(self.train_set), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
 
-        name = 'e' + str(self.epochs) + '-lr' + str(self.lr) + '-dcy' + str(self.decay) + '-m' + str(
-            self.m) + '-reg' + str(self.ridge)
-        filepath = os.path.join(self.output_dir, 'DS_' + name + '_{epoch:03d}-{val_acc:.2f}.h5')
-        model_check = ModelCheckpoint(filepath=filepath, monitor='val_loss', verbose=self.verbose, save_best_only=True)
+        name = 'DS_e{0:d}-lr{1:g}-dcy{2:g}-m{3:g}-reg{4:g}'.format(self.epochs, self.lr, self.decay, self.m, self.ridge)
+        file_path = os.path.join(self.output_dir, self.test_dir, name + '_{epoch:03d}-{val_acc:.2f}.h5')
+        model_check = ModelCheckpoint(filepath=file_path, monitor='val_loss', verbose=self.verbose, save_best_only=True)
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
 
@@ -304,39 +183,36 @@ class DeepSleepClassifier(object):
                                       validation_data=unfold(self.val_set, self.verbose),
                                       callbacks=[model_check, early_stopper])
 
-        acc.extend(history.history['acc'])
-        val_acc.extend(history.history['val_acc'])
-        loss.extend(history.history['loss'])
-        val_loss.extend(history.history['val_loss'])
-
-        if self.verbose > 0:
+        if self.verbose > 1:
             print(history.history.keys())
 
-        model.save(os.path.join(self.output_dir, 'model.h5'))
+        model.save(os.path.join(self.output_dir, self.test_dir, 'model.h5'))
+        np.savez(os.path.join(self.output_dir, self.test_dir, 'history.npz'), acc=history.history['acc'],
+                 val_acc=history.history['val_acc'], loss=history.history['loss'], val_loss=history.history['val_loss'])
 
         return model, history
 
     def test_model(self, model):
         # Test model on test set
-        test_x, y_true = unfold(self.val_set)
+        test_x, y_true = unfold(self.test_data)
         loss_and_metrics = model.evaluate(test_x, y_true, batch_size=self.batch_size, verbose=self.verbose)
         y_pred = model.predict(test_x, batch_size=self.batch_size, verbose=self.verbose)
 
-        y_true_class = np.argmax(y_true, axis=1)
-        y_pred_class = np.argmax(y_pred, axis=1)
-        conf_mat = metrics.confusion_matrix(y_true_class, y_pred_class)
+        # y_true_class = np.argmax(y_true, axis=1)
+        # y_pred_class = np.argmax(y_pred, axis=1)
+        # conf_mat = metrics.confusion_matrix(y_true_class, y_pred_class)
 
         if self.verbose > 0:
             print "Loss: {} Accuracy: {}%".format(loss_and_metrics[0], loss_and_metrics[1] * 100)
-        plot_confusion_matrix(self.output_dir, conf_mat, classes=['S1', 'S2', 'S3', 'A', 'R'])
-        plot_roc_curve(self.output_dir, 5, y_true, y_pred)
+
+        np.savez(os.path.join(self.output_dir, self.test_dir, 'test_results.npz'), loss_and_metrics=loss_and_metrics,
+                 y_true=y_true, y_pred=y_pred)
 
     def get_config(self):
         config = {
             'data_dir': self.data_dir,
             'output_dir': self.output_dir,
             'test_dir': self.test_dir,
-            'k_folds': self.k_folds,
             'batch_size': self.batch_size,
             'epochs': self.epochs,
             'lr': self.lr,

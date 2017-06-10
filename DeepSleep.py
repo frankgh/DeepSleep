@@ -14,8 +14,6 @@ from DeepSleepClassifier import DeepSleepClassifier
 
 def get_kwargs(args):
     _kwargs = dict()
-    if args.k_folds is not None:
-        _kwargs['k_folds'] = args.k_folds
     if args.batch_size is not None:
         _kwargs['batch_size'] = args.batch_size
     if args.epochs is not None:
@@ -46,7 +44,6 @@ if __name__ == "__main__":
     ap.add_argument('-i', dest='data_dir', metavar='data_dir', help='path for the npz patient data', required=True)
     ap.add_argument('-o', dest='output_dir', metavar='output_dir', help='path for the output directory', required=True)
     ap.add_argument('-t', dest='test_dir', metavar='test_dir', help='path for the test directory', required=True)
-    ap.add_argument('--folds', dest='k_folds', metavar='k_folds', help='number of folds for training', type=int)
     ap.add_argument('--bs', dest='batch_size', metavar='batch_size', help='batch size', type=int)
     ap.add_argument('--epochs', dest='epochs', metavar='epochs', help='number of epochs', type=int)
     ap.add_argument('--lr', dest='lr', metavar='learning rate', help='learning rate', type=float)
