@@ -43,7 +43,6 @@ if __name__ == "__main__":
     ap = ArgumentParser(description='Train the Deep Sleep neural network')
     ap.add_argument('-i', dest='data_dir', metavar='data_dir', help='path for the npz patient data', required=True)
     ap.add_argument('-o', dest='output_dir', metavar='output_dir', help='path for the output directory', required=True)
-    ap.add_argument('-t', dest='test_dir', metavar='test_dir', help='path for the test directory', required=True)
     ap.add_argument('--bs', dest='batch_size', metavar='batch_size', help='batch size', type=int)
     ap.add_argument('--epochs', dest='epochs', metavar='epochs', help='number of epochs', type=int)
     ap.add_argument('--lr', dest='lr', metavar='learning rate', help='learning rate', type=float)
@@ -62,7 +61,7 @@ if __name__ == "__main__":
     print 'Setting up with kwargs:', kwargs
 
     start = time.time()
-    classifier = DeepSleepClassifier(args.data_dir, args.output_dir, args.test_dir, **kwargs)
+    classifier = DeepSleepClassifier(args.data_dir, args.output_dir, **kwargs)
     model, _ = classifier.train_model()
     classifier.test_model(model)
     elapsed = time.time() - start

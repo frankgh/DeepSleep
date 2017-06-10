@@ -55,7 +55,6 @@ def calculate_weights(data):
 class DeepSleepClassifier(object):
     def __init__(self, data_dir,
                  output_dir,
-                 test_dir,
                  batch_size=192,
                  epochs=100,
                  lr=1e-5,
@@ -72,7 +71,6 @@ class DeepSleepClassifier(object):
                  kernel_size=50):
         self.data_dir = data_dir
         self.output_dir = output_dir
-        self.test_dir = test_dir
         self.batch_size = batch_size
         self.epochs = epochs
         self.lr = lr
@@ -100,7 +98,8 @@ class DeepSleepClassifier(object):
         :param self: self
         """
         all_files = glob.glob(os.path.join(self.data_dir, '*.np[yz]'))
-        test_files = ['p' + s + '.npz' for s in self.test_dir.split('p') if s.isdigit()]
+        test_files = ['p' + s + '.npz' for s in os.path.basename(os.path.normpath(self.output_dir)).split('p') if
+                      s.isdigit()]
         self.data = np.array([np.load(f) for f in all_files if not f.endswith(tuple(test_files))])
         self.test_data = np.array([np.load(f) for f in all_files if f.endswith(tuple(test_files))])
 
@@ -171,7 +170,7 @@ class DeepSleepClassifier(object):
             print 'Samples:', count_samples(self.train_set), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
 
         name = 'DS_e{0:d}-lr{1:g}-dcy{2:g}-m{3:g}-reg{4:g}'.format(self.epochs, self.lr, self.decay, self.m, self.ridge)
-        file_path = os.path.join(self.output_dir, self.test_dir, name + '_{epoch:03d}-{val_acc:.2f}.h5')
+        file_path = os.path.join(self.output_dir, name + '_{epoch:03d}-{val_acc:.2f}.h5')
         model_check = ModelCheckpoint(filepath=file_path, monitor='val_loss', verbose=self.verbose, save_best_only=True)
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
@@ -186,8 +185,8 @@ class DeepSleepClassifier(object):
         if self.verbose > 1:
             print(history.history.keys())
 
-        model.save(os.path.join(self.output_dir, self.test_dir, 'model.h5'))
-        np.savez(os.path.join(self.output_dir, self.test_dir, 'history.npz'), acc=history.history['acc'],
+        model.save(os.path.join(self.output_dir, 'model.h5'))
+        np.savez(os.path.join(self.output_dir, 'history.npz'), acc=history.history['acc'],
                  val_acc=history.history['val_acc'], loss=history.history['loss'], val_loss=history.history['val_loss'])
 
         return model, history
@@ -207,14 +206,13 @@ class DeepSleepClassifier(object):
         if self.verbose > 0:
             print "Loss: {} Accuracy: {}%".format(loss_and_metrics[0], loss_and_metrics[1] * 100)
 
-        np.savez(os.path.join(self.output_dir, self.test_dir, 'test_results.npz'), loss_and_metrics=loss_and_metrics,
+        np.savez(os.path.join(self.output_dir, 'test_results.npz'), loss_and_metrics=loss_and_metrics,
                  y_true=y_true, y_pred=y_pred)
 
     def get_config(self):
         config = {
             'data_dir': self.data_dir,
             'output_dir': self.output_dir,
-            'test_dir': self.test_dir,
             'batch_size': self.batch_size,
             'epochs': self.epochs,
             'lr': self.lr,
