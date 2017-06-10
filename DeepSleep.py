@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 
 from DeepSleepClassifier import DeepSleepClassifier
 
+
 # For reproducibility
 # random.seed(8512)
 # numpy.random.seed(8512)
@@ -44,6 +45,7 @@ if __name__ == "__main__":
     ap = ArgumentParser(description='Train the Deep Sleep neural network')
     ap.add_argument('-i', dest='data_dir', metavar='data_dir', help='path for the npz patient data', required=True)
     ap.add_argument('-o', dest='output_dir', metavar='output_dir', help='path for the output directory', required=True)
+    ap.add_argument('-t', dest='test_dir', metavar='test_dir', help='path for the test directory', required=True)
     ap.add_argument('--folds', dest='k_folds', metavar='k_folds', help='number of folds for training', type=int)
     ap.add_argument('--bs', dest='batch_size', metavar='batch_size', help='batch size', type=int)
     ap.add_argument('--epochs', dest='epochs', metavar='epochs', help='number of epochs', type=int)
@@ -63,7 +65,7 @@ if __name__ == "__main__":
     print 'Setting up with kwargs:', kwargs
 
     start = time.time()
-    classifier = DeepSleepClassifier(args.data_dir, args.output_dir, **kwargs)
+    classifier = DeepSleepClassifier(args.data_dir, args.output_dir, args.test_dir, **kwargs)
     model, _ = classifier.train_model()
     classifier.test_model(model)
     elapsed = time.time() - start

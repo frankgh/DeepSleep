@@ -1,10 +1,8 @@
 import os
 import glob
-import math
 import numpy as np
 import itertools
 import sklearn.metrics as metrics
-import matplotlib
 import matplotlib.pyplot as plt
 
 from sklearn.utils import compute_class_weight
@@ -19,8 +17,6 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adam
 from keras.regularizers import l2
 from keras.initializers import Constant
-
-matplotlib.use('Agg')
 
 
 def next_batch(data, size):
@@ -136,7 +132,7 @@ def plot_roc_curve(output_dir, n_classes, y_true, y_pred):
     print "ROC AUC Score: ", roc_score
 
 
-def plot_accuracy(output_dir, acc, val_acc, splits):
+def plot_accuracy(output_dir, acc, val_acc):
     """
     Summarize history for accuracy
     :param output_dir: the output directory for the plot png file 
@@ -145,12 +141,6 @@ def plot_accuracy(output_dir, acc, val_acc, splits):
     """
     plt.plot(acc, linewidth=2)
     plt.plot(val_acc, linestyle='dotted', linewidth=2)
-
-    total = 0
-    for n in splits:
-        total += n
-        plt.axvline(x=total, linestyle='dotted', linewidth=1, color='r')
-
     plt.title('model accuracy')
     plt.ylabel('accuracy')
     plt.xlabel('epoch')
@@ -161,7 +151,7 @@ def plot_accuracy(output_dir, acc, val_acc, splits):
     plt.close()
 
 
-def plot_loss(output_dir, loss, val_loss, splits):
+def plot_loss(output_dir, loss, val_loss):
     """
     Summarize history for loss
     :param output_dir: the output directory for the plot png file
@@ -170,12 +160,6 @@ def plot_loss(output_dir, loss, val_loss, splits):
     """
     plt.plot(loss, linewidth=2)
     plt.plot(val_loss, linestyle='dotted', linewidth=2)
-
-    total = 0
-    for n in splits:
-        total += n
-        plt.axvline(x=total, linestyle='dotted', linewidth=1, color='r')
-
     plt.title('model loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
@@ -189,6 +173,7 @@ def plot_loss(output_dir, loss, val_loss, splits):
 class DeepSleepClassifier(object):
     def __init__(self, data_dir,
                  output_dir,
+                 test_dir,
                  k_folds=9,
                  batch_size=192,
                  epochs=100,
@@ -206,6 +191,7 @@ class DeepSleepClassifier(object):
                  kernel_size=50):
         self.data_dir = data_dir
         self.output_dir = output_dir
+        self.test_dir = test_dir
         self.k_folds = k_folds
         self.batch_size = batch_size
         self.epochs = epochs
@@ -222,8 +208,8 @@ class DeepSleepClassifier(object):
         self.iterations = iterations
         self.convolutional_layers = convolutional_layers
 
-        self.data = self.load_data()
-        self.train_set, self.test_set = self.split_data()
+        self.load_data()
+        self.train_set, self.val_set = self.split_data()
 
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
@@ -233,9 +219,12 @@ class DeepSleepClassifier(object):
         Load all npz files from the given path
         :param self: self
         """
-        return np.array([np.load(np_name) for np_name in glob.glob(os.path.join(self.data_dir, '*.np[yz]'))])
+        all_files = glob.glob(os.path.join(self.data_dir, '*.np[yz]'))
+        test_files = ['p' + s + '.npz' for s in self.test_dir.split('p') if s.isdigit()]
+        self.data = np.array([np.load(f) for f in all_files if not f.endswith(tuple(test_files))])
+        self.test_data = np.array([np.load(f) for f in all_files if f.endswith(tuple(test_files))])
 
-    def split_data(self, split=0.1):
+    def split_data(self, split=0.17):
         """
         Split permutated data into train and test set split by the split value
         :param self: 
@@ -246,7 +235,7 @@ class DeepSleepClassifier(object):
         perm = np.random.permutation(len(self.data))  # permute data
 
         if self.verbose > 0:
-            print 'Test elements:'
+            print 'Validation elements:'
             for item in self.data[perm[0:i]]:
                 print ' -', item['name']
 
@@ -295,50 +284,41 @@ class DeepSleepClassifier(object):
         if self.verbose > 0:
             model.summary()
 
-        fold_size = int(math.ceil(len(self.train_set) / self.k_folds))
+        class_weight = calculate_weights(self.train_set)
+        steps_per_epoch = count_steps(self.train_set, self.batch_size)
+
+        if self.verbose > 0:
+            print 'Samples:', count_samples(self.train_set), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
+
+        name = 'e' + str(self.epochs) + '-lr' + str(self.lr) + '-dcy' + str(self.decay) + '-m' + str(
+            self.m) + '-reg' + str(self.ridge)
+        filepath = os.path.join(self.output_dir, 'DS_' + name + '_{epoch:03d}-{val_acc:.2f}.h5')
+        model_check = ModelCheckpoint(filepath=filepath, monitor='val_loss', verbose=self.verbose, save_best_only=True)
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
-        class_weight = calculate_weights(self.train_set)
-        acc, val_acc, loss, val_loss, splits = [], [], [], [], []
 
-        for k in range(self.iterations * self.k_folds):
-            i = int(k * fold_size) % self.k_folds
-            val = self.train_set[i:i + fold_size]
-            train = np.concatenate((self.train_set[:i], self.train_set[i + fold_size:]))
-            steps_per_epoch = count_steps(train, self.batch_size)
-            if self.verbose > 0:
-                print 'Fold:', (k + 1), 'Samples:', count_samples(
-                    train), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
+        history = model.fit_generator(next_batch(self.train_set, self.batch_size), steps_per_epoch,
+                                      epochs=self.epochs,
+                                      verbose=self.verbose,
+                                      class_weight=class_weight,
+                                      validation_data=unfold(self.val_set, self.verbose),
+                                      callbacks=[model_check, early_stopper])
 
-            name = 'f' + str(k + 1) + '-e' + str(self.epochs) + '-lr' + str(self.lr) + '-dcy' + str(
-                self.decay) + '-m' + str(self.m) + '-reg' + str(self.ridge)
-            filepath = os.path.join(self.output_dir, 'DS_' + name + '_{epoch:03d}-{val_acc:.2f}.h5')
-            checkpointer = ModelCheckpoint(filepath=filepath, monitor='val_loss', verbose=self.verbose,
-                                           save_best_only=True)
-
-            history = model.fit_generator(next_batch(train, self.batch_size), steps_per_epoch,
-                                          epochs=self.epochs,
-                                          verbose=self.verbose,
-                                          class_weight=class_weight,
-                                          validation_data=unfold(val, self.verbose),
-                                          callbacks=[checkpointer, early_stopper])
-
-            acc.extend(history.history['acc'])
-            val_acc.extend(history.history['val_acc'])
-            loss.extend(history.history['loss'])
-            val_loss.extend(history.history['val_loss'])
-            splits.append(len(history.history['acc']))
+        acc.extend(history.history['acc'])
+        val_acc.extend(history.history['val_acc'])
+        loss.extend(history.history['loss'])
+        val_loss.extend(history.history['val_loss'])
 
         if self.verbose > 0:
             print(history.history.keys())
+
         model.save(os.path.join(self.output_dir, 'model.h5'))
-        plot_accuracy(self.output_dir, acc, val_acc, splits)
-        plot_loss(self.output_dir, loss, val_loss, splits)
+
         return model, history
 
     def test_model(self, model):
         # Test model on test set
-        test_x, y_true = unfold(self.test_set)
+        test_x, y_true = unfold(self.val_set)
         loss_and_metrics = model.evaluate(test_x, y_true, batch_size=self.batch_size, verbose=self.verbose)
         y_pred = model.predict(test_x, batch_size=self.batch_size, verbose=self.verbose)
 
@@ -355,6 +335,7 @@ class DeepSleepClassifier(object):
         config = {
             'data_dir': self.data_dir,
             'output_dir': self.output_dir,
+            'test_dir': self.test_dir,
             'k_folds': self.k_folds,
             'batch_size': self.batch_size,
             'epochs': self.epochs,
