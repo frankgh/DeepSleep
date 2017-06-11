@@ -42,6 +42,8 @@ def get_kwargs(args):
         _kwargs['initial_filters'] = args.ifilters
     if args.iks is not None:
         _kwargs['initial_kernel_size'] = args.iks
+    if args.padding is not None:
+        _kwargs['padding'] = args.padding
     return _kwargs
 
 
@@ -68,6 +70,7 @@ if __name__ == "__main__":
                     help='filters for the first convolutional layer', type=int)
     ap.add_argument('--iks', dest='iks', metavar='initial kernel size',
                     help='kernel size for the first convolutional layer', type=int)
+    ap.add_argument('--padding', dest='padding', metavar='padding', help='padding for the convolutional layers')
     args = ap.parse_args()
     kwargs = get_kwargs(args)
 
