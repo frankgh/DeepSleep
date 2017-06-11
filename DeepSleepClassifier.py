@@ -68,7 +68,10 @@ class DeepSleepClassifier(object):
                  iterations=1,
                  filters=25,
                  strides=5,
-                 kernel_size=50):
+                 kernel_size=50,
+                 initial_filters=128,
+                 initial_strides=50,
+                 initial_kernel_size=500):
         self.data_dir = data_dir
         self.output_dir = output_dir
         self.batch_size = batch_size
@@ -85,6 +88,9 @@ class DeepSleepClassifier(object):
         self.kernel_size = kernel_size
         self.iterations = iterations
         self.convolutional_layers = convolutional_layers
+        self.initial_filters = initial_filters
+        self.initial_strides = initial_strides
+        self.initial_kernel_size = initial_kernel_size
 
         self.load_data()
         self.train_set, self.val_set = self.split_data()
@@ -125,8 +131,9 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
 
-        model.add(Conv1D(128, 500, strides=50, padding='same', kernel_initializer=self.kernel_initializer,
-                         bias_initializer=bias_init, input_shape=(15000, 3)))
+        model.add(Conv1D(self.initial_filters, self.initial_kernel_size, strides=self.initial_strides, padding='same',
+                         kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                         input_shape=(15000, 3)))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.3))
 

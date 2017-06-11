@@ -1,8 +1,6 @@
 import time
-import numpy
-import random
-from datetime import timedelta
 from argparse import ArgumentParser
+from datetime import timedelta
 
 from DeepSleepClassifier import DeepSleepClassifier
 
@@ -36,6 +34,14 @@ def get_kwargs(args):
         _kwargs['convolutional_layers'] = args.conv_layers
     if args.iter is not None:
         _kwargs['iterations'] = args.iter
+    if args.strides is not None:
+        _kwargs['strides'] = args.strides
+    if args.istrides is not None:
+        _kwargs['initial_strides'] = args.istrides
+    if args.ifilters is not None:
+        _kwargs['initial_filters'] = args.ifilters
+    if args.iks is not None:
+        _kwargs['initial_kernel_size'] = args.iks
     return _kwargs
 
 
@@ -55,6 +61,13 @@ if __name__ == "__main__":
     ap.add_argument('--conv_layers', dest='conv_layers', metavar='convolutional layers',
                     help='number of convolutional layers', type=int)
     ap.add_argument('--iter', dest='iter', metavar='iterations', help='number of iterations', type=int)
+    ap.add_argument('--strides', dest='strides', metavar='strides', help='strides for convolutional layers', type=int)
+    ap.add_argument('--istrides', dest='istrides', metavar='initial strides',
+                    help='strides for the first convolutional layer', type=int)
+    ap.add_argument('--ifilters', dest='ifilters', metavar='initial filters',
+                    help='filters for the first convolutional layer', type=int)
+    ap.add_argument('--iks', dest='iks', metavar='initial kernel size',
+                    help='kernel size for the first convolutional layer', type=int)
     args = ap.parse_args()
     kwargs = get_kwargs(args)
 
