@@ -16,8 +16,10 @@ from keras.regularizers import l2
 from sklearn.utils import compute_class_weight
 
 
-def next_batch(data, size):
+def next_batch(data, size, verbose=0):
     for item in itertools.cycle(data):
+        if verbose > 0:
+            print 'Training on -', item['name']
         perm = np.random.permutation(item['Y'].shape[0])
         for i in np.arange(0, item['Y'].shape[0], size):
             yield (item['X'][perm[i:i + size]], item['Y'][perm[i:i + size]])
@@ -184,7 +186,7 @@ class DeepSleepClassifier(object):
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
 
-        history = model.fit_generator(next_batch(self.train_set, self.batch_size), steps_per_epoch,
+        history = model.fit_generator(next_batch(self.train_set, self.batch_size, self.verbose), steps_per_epoch,
                                       epochs=self.epochs,
                                       verbose=self.verbose,
                                       class_weight=class_weight,
