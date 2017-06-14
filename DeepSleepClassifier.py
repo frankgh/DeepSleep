@@ -137,16 +137,18 @@ class DeepSleepClassifier(object):
 
         model.add(Conv1D(self.initial_filters, self.initial_kernel_size, strides=self.initial_strides,
                          padding=self.padding, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                         activation='selu',
                          input_shape=(15000, 3)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+        model.add(MaxPooling1D())
 
-        for layer_i in range(self.convolutional_layers - 1):
+        model.add(Conv1D(self.filters, self.kernel_size, strides=self.strides, padding=self.padding,
+                         kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='selu'))
+        model.add(MaxPooling1D())
+
+        for layer_i in range(self.convolutional_layers - 2):
             model.add(
                 Conv1D(self.filters, self.kernel_size, strides=self.strides, padding=self.padding,
-                       kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
-            model.add(BatchNormalization())
-            model.add(LeakyReLU(alpha=0.3))
+                       kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='selu'))
 
         model.add(MaxPooling1D())
         model.add(Flatten())
