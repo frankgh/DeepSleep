@@ -154,14 +154,10 @@ class DeepSleepClassifier(object):
         model.add(Flatten())
 
         model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+                        kernel_regularizer=l2(self.ridge), activation='selu'))
 
         model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+                        kernel_regularizer=l2(self.ridge), activation='selu'))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge), activation='softmax'))
