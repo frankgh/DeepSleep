@@ -5,7 +5,7 @@ import os
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.initializers import Constant
-from keras.layers import Dense, Flatten
+from keras.layers import Dense, Flatten, ConvLSTM2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
@@ -16,11 +16,16 @@ from keras.regularizers import l2
 from sklearn.utils import compute_class_weight
 
 
-def next_batch(data, size, verbose=0):
+def next_batch(data, size, verbose=0, shuffle=True):
     for item in itertools.cycle(data):
         if verbose > 0:
             print 'Training on -', item['name']
-        perm = np.random.permutation(item['Y'].shape[0])
+
+        if shuffle:
+            perm = np.random.permutation(item['Y'].shape[0])
+        else:
+            perm = range(item['Y'].shape[0])
+
         for i in np.arange(0, item['Y'].shape[0], size):
             yield (item['X'][perm[i:i + size]], item['Y'][perm[i:i + size]])
 
@@ -135,16 +140,17 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
 
-        model.add(Conv1D(self.initial_filters, self.initial_kernel_size, strides=self.initial_strides,
-                         padding=self.padding, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                         input_shape=(15000, 3)))
+        model.add(ConvLSTM2D(self.initial_filters, (self.initial_kernel_size, 1), strides=(self.initial_strides, 1),
+                             padding=self.padding, return_sequences=True, kernel_initializer=self.kernel_initializer,
+                             bias_initializer=bias_init,
+                             input_shape=(15000, 3, 1)))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.3))
 
         for layer_i in range(self.convolutional_layers - 1):
             model.add(
-                Conv1D(self.filters, self.kernel_size, strides=self.strides, padding=self.padding,
-                       kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
+                Conv1D(self.filters, (self.kernel_size, 1), strides=(self.strides, 1), padding=self.padding,
+                       return_sequences=True, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
             model.add(BatchNormalization())
             model.add(LeakyReLU(alpha=0.3))
 
@@ -186,7 +192,8 @@ class DeepSleepClassifier(object):
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
 
-        history = model.fit_generator(next_batch(self.train_set, self.batch_size, self.verbose), steps_per_epoch,
+        history = model.fit_generator(next_batch(self.train_set, self.batch_size, self.verbose, shuffle=False),
+                                      steps_per_epoch,
                                       epochs=self.epochs,
                                       verbose=self.verbose,
                                       class_weight=class_weight,
