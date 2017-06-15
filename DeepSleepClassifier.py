@@ -5,7 +5,7 @@ import os
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.initializers import Constant
-from keras.layers import Dense, Flatten
+from keras.layers import Dense, Flatten, BatchNormalization, LeakyReLU
 from keras.layers.convolutional import Conv1D
 from keras.layers.pooling import MaxPooling1D
 from keras.models import Sequential
@@ -132,6 +132,7 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
 
+        model.add(BatchNormalization())
         model.add(Conv1D(self.initial_filters, self.initial_kernel_size, strides=self.initial_strides,
                          padding=self.padding, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                          activation='selu',
@@ -150,9 +151,14 @@ class DeepSleepClassifier(object):
         model.add(MaxPooling1D())
         model.add(Flatten())
 
-        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='selu'))
-        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='selu'))
-        model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax'))
+        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
+        model.add(BatchNormalization())
+        model.add(LeakyReLU(alpha=0.3))
+        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
+        model.add(BatchNormalization())
+        model.add(LeakyReLU(alpha=0.3))
+        model.add(
+            Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
