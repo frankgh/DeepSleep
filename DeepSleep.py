@@ -73,7 +73,7 @@ if __name__ == "__main__":
     ap.add_argument('--iks', dest='iks', metavar='initial kernel size',
                     help='kernel size for the first convolutional layer', type=int)
     ap.add_argument('--padding', dest='padding', metavar='padding', help='padding for the convolutional layers')
-    ap.add_argument('--split', dest='split', metavar='split', help='split for the training and validation')
+    ap.add_argument('--split', dest='split', metavar='split', help='split for the training and validation', type=float)
     args = ap.parse_args()
     kwargs = get_kwargs(args)
 
