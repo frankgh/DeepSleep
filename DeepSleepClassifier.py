@@ -184,8 +184,6 @@ class DeepSleepClassifier(object):
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
 
-        train_x, train_y = unfold(self.train_set, self.verbose)
-
         history = model.fit_generator(next_batch(self.train_set, self.batch_size, self.verbose), steps_per_epoch,
                                       epochs=self.epochs,
                                       verbose=self.verbose,
