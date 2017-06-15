@@ -44,6 +44,8 @@ def get_kwargs(args):
         _kwargs['initial_kernel_size'] = args.iks
     if args.padding is not None:
         _kwargs['padding'] = args.padding
+    if args.split is not None:
+        _kwargs['split'] = args.split
     return _kwargs
 
 
@@ -71,6 +73,7 @@ if __name__ == "__main__":
     ap.add_argument('--iks', dest='iks', metavar='initial kernel size',
                     help='kernel size for the first convolutional layer', type=int)
     ap.add_argument('--padding', dest='padding', metavar='padding', help='padding for the convolutional layers')
+    ap.add_argument('--split', dest='split', metavar='split', help='split for the training and validation')
     args = ap.parse_args()
     kwargs = get_kwargs(args)
 

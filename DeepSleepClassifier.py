@@ -6,13 +6,11 @@ import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.initializers import Constant
 from keras.layers import Dense, Flatten, Activation
-from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling1D
 from keras.models import Sequential
 from keras.optimizers import Adam
-from keras.regularizers import l2
 from sklearn.utils import compute_class_weight
 
 
@@ -64,7 +62,7 @@ class DeepSleepClassifier(object):
                  m=0.5,
                  ridge=2e-4,
                  patience=10,
-                 kernel_initializer='he_normal',
+                 kernel_initializer=self.kernel_initializer,
                  convolutional_layers=3,
                  verbose=2,
                  iterations=1,
@@ -74,6 +72,7 @@ class DeepSleepClassifier(object):
                  initial_filters=128,
                  initial_strides=50,
                  initial_kernel_size=500,
+                 split=0.17,
                  padding='same'):
         self.data_dir = data_dir
         self.output_dir = output_dir
@@ -97,7 +96,7 @@ class DeepSleepClassifier(object):
         self.padding = padding
 
         self.load_data()
-        self.train_set, self.val_set = self.split_data()
+        self.train_set, self.val_set = self.split_data(split=split)
 
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
@@ -135,55 +134,61 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
         model.add(
-            Conv1D(25, 100, strides=1, padding='valid', kernel_initializer='he_normal', bias_initializer=bias_init,
+            Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                   bias_initializer=bias_init,
                    input_shape=(15000, 3)))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
         for i in range(5):
             model.add(
-                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer='he_normal', bias_initializer=bias_init))
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       bias_initializer=bias_init))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
         model.add(MaxPooling1D(2, strides=2))
 
         for i in range(3):
             model.add(
-                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer='he_normal', bias_initializer=bias_init))
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       bias_initializer=bias_init))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
         model.add(MaxPooling1D(2, strides=2))
 
         for i in range(3):
             model.add(
-                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer='he_normal', bias_initializer=bias_init))
+                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       bias_initializer=bias_init))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
         model.add(MaxPooling1D(2, strides=2))
 
         for i in range(3):
-            model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer='he_normal',
+            model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
                              bias_initializer=bias_init))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
         model.add(MaxPooling1D(2, strides=2))
 
         model.add(MaxPooling1D(100, strides=100))
-        model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer='he_normal', bias_initializer=bias_init))
+        model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                         bias_initializer=bias_init))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
         model.add(Flatten())
 
-        model.add(Dense(100, kernel_initializer='he_normal', bias_initializer=bias_init))
+        model.add(Dense(100, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
-        model.add(Dense(100, kernel_initializer='he_normal', bias_initializer=bias_init))
+        model.add(Dense(100, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
-        model.add(Dense(5, kernel_initializer='he_normal', bias_initializer=bias_init, activation='softmax'))
+        model.add(
+            Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
