@@ -6,9 +6,7 @@ import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.initializers import Constant
 from keras.layers import Dense, Flatten
-from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import Conv1D
-from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling1D
 from keras.models import Sequential
 from keras.optimizers import Adam
@@ -18,7 +16,7 @@ from sklearn.utils import compute_class_weight
 
 def next_batch(data, size, verbose=0):
     for item in itertools.cycle(data):
-        if verbose > 0:
+        if verbose > 2:
             print 'Training on -', item['name']
         perm = np.random.permutation(item['Y'].shape[0])
         for i in np.arange(0, item['Y'].shape[0], size):
