@@ -62,7 +62,7 @@ class DeepSleepClassifier(object):
                  m=0.5,
                  ridge=2e-4,
                  patience=10,
-                 kernel_initializer=self.kernel_initializer,
+                 kernel_initializer='he_normal',
                  convolutional_layers=3,
                  verbose=2,
                  iterations=1,
