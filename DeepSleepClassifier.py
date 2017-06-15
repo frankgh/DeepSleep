@@ -5,7 +5,7 @@ import os
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.initializers import Constant
-from keras.layers import Dense, Flatten
+from keras.layers import Dense, Flatten, Activation
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
@@ -131,39 +131,59 @@ class DeepSleepClassifier(object):
         return self.data[perm[i:]], self.data[perm[0:i]]  # return training, test sets
 
     def build_model(self):
-        optimizer = Adam(lr=self.lr, decay=self.decay)
+        optimizer = Adam(lr=1e-4, decay=0.8)
         bias_init = Constant(value=0.1)
         model = Sequential()
+        model.add(
+            Conv1D(25, 100, strides=1, padding='valid', kernel_initializer='he_normal', bias_initializer=bias_init,
+                   input_shape=(15000, 3)))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
 
-        model.add(Conv1D(self.initial_filters, self.initial_kernel_size, strides=self.initial_strides,
-                         padding=self.padding, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                         activation='selu', input_shape=(15000, 3)))
-        model.add(MaxPooling1D())
-
-        model.add(Conv1D(self.filters, self.kernel_size, strides=self.strides, padding=self.padding,
-                         kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='selu'))
-        model.add(MaxPooling1D())
-
-        for layer_i in range(self.convolutional_layers - 2):
+        for i in range(5):
             model.add(
-                Conv1D(self.filters, self.kernel_size, strides=self.strides, padding=self.padding,
-                       kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='selu'))
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer='he_normal', bias_initializer=bias_init))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+        model.add(MaxPooling1D(2, strides=2))
 
-        model.add(MaxPooling1D())
+        for i in range(3):
+            model.add(
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer='he_normal', bias_initializer=bias_init))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+        model.add(MaxPooling1D(2, strides=2))
+
+        for i in range(3):
+            model.add(
+                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer='he_normal', bias_initializer=bias_init))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+        model.add(MaxPooling1D(2, strides=2))
+
+        for i in range(3):
+            model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer='he_normal',
+                             bias_initializer=bias_init))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+        model.add(MaxPooling1D(2, strides=2))
+
+        model.add(MaxPooling1D(100, strides=100))
+        model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer='he_normal', bias_initializer=bias_init))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
+
         model.add(Flatten())
 
-        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
+        model.add(Dense(100, kernel_initializer='he_normal', bias_initializer=bias_init))
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+        model.add(Activation('relu'))
 
-        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
+        model.add(Dense(100, kernel_initializer='he_normal', bias_initializer=bias_init))
         model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+        model.add(Activation('relu'))
 
-        model.add(
-            Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax'))
+        model.add(Dense(5, kernel_initializer='he_normal', bias_initializer=bias_init, activation='softmax'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
