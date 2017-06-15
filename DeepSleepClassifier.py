@@ -5,11 +5,13 @@ import os
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.initializers import Constant
-from keras.layers import Dense, Flatten, BatchNormalization, LeakyReLU
+from keras.layers import Dense, Flatten, LeakyReLU
 from keras.layers.convolutional import Conv1D
+from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling1D
 from keras.models import Sequential
 from keras.optimizers import Adam
+from keras.regularizers import l2
 from sklearn.utils import compute_class_weight
 
 
@@ -151,12 +153,16 @@ class DeepSleepClassifier(object):
         model.add(MaxPooling1D())
         model.add(Flatten())
 
-        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
+        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                        kernel_regularizer=l2(self.ridge)))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.3))
-        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
+
+        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                        kernel_regularizer=l2(self.ridge)))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.3))
+
         model.add(
             Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax'))
 
