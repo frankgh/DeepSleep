@@ -135,11 +135,10 @@ class DeepSleepClassifier(object):
         bias_init = Constant(value=0.1)
         model = Sequential()
 
-        model.add(BatchNormalization())
+        model.add(BatchNormalization(input_shape=(15000, 3)))
         model.add(Conv1D(self.initial_filters, self.initial_kernel_size, strides=self.initial_strides,
                          padding=self.padding, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                         activation='selu',
-                         input_shape=(15000, 3)))
+                         activation='selu'))
         model.add(MaxPooling1D())
 
         model.add(Conv1D(self.filters, self.kernel_size, strides=self.strides, padding=self.padding,
