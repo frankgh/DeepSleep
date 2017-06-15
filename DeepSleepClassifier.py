@@ -10,7 +10,6 @@ from keras.layers.convolutional import Conv1D
 from keras.layers.pooling import MaxPooling1D
 from keras.models import Sequential
 from keras.optimizers import Adam
-from keras.regularizers import l2
 from sklearn.utils import compute_class_weight
 
 
@@ -151,14 +150,9 @@ class DeepSleepClassifier(object):
         model.add(MaxPooling1D())
         model.add(Flatten())
 
-        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge), activation='selu'))
-
-        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge), activation='selu'))
-
-        model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge), activation='softmax'))
+        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='selu'))
+        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='selu'))
+        model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
