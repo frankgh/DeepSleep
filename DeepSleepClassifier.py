@@ -204,23 +204,20 @@ class DeepSleepClassifier(object):
 
         if self.verbose > 0:
             model.summary()
+            print 'Training set:'
 
+        train_x, train_y = unfold(self.train_set, self.verbose)
         class_weight = calculate_weights(self.train_set)
+        steps_per_epoch = int(len(train_y) / self.batch_size) + 1
 
         if self.verbose > 0:
-            print 'Samples:', count_samples(self.train_set), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
+            print 'Samples:', len(train_y), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
 
         name = 'DS_e{0:d}-lr{1:g}-dcy{2:g}-m{3:g}-reg{4:g}'.format(self.epochs, self.lr, self.decay, self.m, self.ridge)
         file_path = os.path.join(self.output_dir, name + '_{epoch:03d}-{val_acc:.2f}.h5')
         model_check = ModelCheckpoint(filepath=file_path, monitor='val_loss', verbose=self.verbose, save_best_only=True)
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
-
-        if self.verbose > 0:
-            print 'Training set:'
-
-        train_x, train_y = unfold(self.train_set, self.verbose)
-        steps_per_epoch = int(len(train_y) / self.batch_size) + 1
 
         history = model.fit_generator(next_batch(train_x, train_y, self.batch_size), steps_per_epoch,
                                       epochs=self.epochs,
