@@ -130,7 +130,7 @@ class DeepSleepClassifier(object):
         return self.data[perm[i:]], self.data[perm[0:i]]  # return training, test sets
 
     def build_model(self):
-        optimizer = Adam(lr=1e-4, decay=0.8)
+        optimizer = Adam(lr=self.lr, decay=self.decay)
         bias_init = Constant(value=0.1)
         model = Sequential()
         model.add(
