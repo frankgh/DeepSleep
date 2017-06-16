@@ -14,9 +14,10 @@ from sklearn.utils import compute_class_weight
 
 
 def next_batch(X, y, size):
-    perm = np.random.permutation(X.shape[0])
-    for i in np.arange(0, X.shape[0], size):
-        yield (X[perm[i:i + size]], y[perm[i:i + size]])
+    while 1:
+        perm = np.random.permutation(X.shape[0])
+        for i in np.arange(0, X.shape[0], size):
+            yield (X[perm[i:i + size]], y[perm[i:i + size]])
 
 
 # def next_batch(data, size, verbose=0):
@@ -208,7 +209,7 @@ class DeepSleepClassifier(object):
 
         train_x, train_y = unfold(self.train_set, self.verbose)
         class_weight = calculate_weights(self.train_set)
-        steps_per_epoch = int(np.math.ceil(len(train_y) / self.batch_size))
+        steps_per_epoch = int(np.math.ceil(1.0 * len(train_y) / self.batch_size))
 
         if self.verbose > 0:
             print 'Samples:', len(train_y), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
