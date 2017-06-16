@@ -1,5 +1,4 @@
 import glob
-import itertools
 import os
 
 import numpy as np
@@ -14,13 +13,19 @@ from keras.optimizers import Adam
 from sklearn.utils import compute_class_weight
 
 
-def next_batch(data, size, verbose=0):
-    for item in itertools.cycle(data):
-        if verbose > 2:
-            print 'Training on -', item['name']
-        perm = np.random.permutation(item['Y'].shape[0])
-        for i in np.arange(0, item['Y'].shape[0], size):
-            yield (item['X'][perm[i:i + size]], item['Y'][perm[i:i + size]])
+def next_batch(X, y, size):
+    perm = np.random.permutation(X.shape[0])
+    for i in np.arange(0, X.shape[0], size):
+        yield (X[perm[i:i + size]], y[perm[i:i + size]])
+
+
+# def next_batch(data, size, verbose=0):
+#     for item in itertools.cycle(data):
+#         if verbose > 2:
+#             print 'Training on -', item['name']
+#         perm = np.random.permutation(item['Y'].shape[0])
+#         for i in np.arange(0, item['Y'].shape[0], size):
+#             yield (item['X'][perm[i:i + size]], item['Y'][perm[i:i + size]])
 
 
 def unfold(data, verbose=0):
@@ -201,7 +206,6 @@ class DeepSleepClassifier(object):
             model.summary()
 
         class_weight = calculate_weights(self.train_set)
-        steps_per_epoch = count_steps(self.train_set, self.batch_size)
 
         if self.verbose > 0:
             print 'Samples:', count_samples(self.train_set), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
@@ -212,7 +216,13 @@ class DeepSleepClassifier(object):
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
 
-        history = model.fit_generator(next_batch(self.train_set, self.batch_size, self.verbose), steps_per_epoch,
+        if self.verbose > 0:
+            print 'Training set:'
+
+        train_x, train_y = unfold(self.train_set, self.verbose)
+        steps_per_epoch = int(len(train_y) / self.batch_size) + 1
+
+        history = model.fit_generator(next_batch(train_x, train_y, self.batch_size), steps_per_epoch,
                                       epochs=self.epochs,
                                       verbose=self.verbose,
                                       class_weight=class_weight,
