@@ -208,7 +208,7 @@ class DeepSleepClassifier(object):
 
         train_x, train_y = unfold(self.train_set, self.verbose)
         class_weight = calculate_weights(self.train_set)
-        steps_per_epoch = int(len(train_y) / self.batch_size) + 1
+        steps_per_epoch = int(np.math.ceil(len(train_y) / self.batch_size))
 
         if self.verbose > 0:
             print 'Samples:', len(train_y), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
