@@ -4,7 +4,7 @@ import os
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.initializers import Constant
-from keras.layers import Dense, ConvLSTM2D, BatchNormalization, LeakyReLU, Conv3D
+from keras.layers import Dense, ConvLSTM2D, BatchNormalization, Conv3D, LeakyReLU
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.regularizers import l2
@@ -143,10 +143,9 @@ class DeepSleepClassifier(object):
         layer_count = max(1, self.convolutional_layers - 1)
 
         for layer_i in range(layer_count):
-            return_sequences = (layer_count - 1) != layer_i
             model.add(
                 ConvLSTM2D(self.filters, (self.kernel_size, 1), strides=(self.strides, 1), padding=self.padding,
-                           return_sequences=return_sequences, kernel_initializer=self.kernel_initializer,
+                           return_sequences=True, kernel_initializer=self.kernel_initializer,
                            bias_initializer=bias_init))
             model.add(BatchNormalization())
             model.add(LeakyReLU(alpha=0.3))
