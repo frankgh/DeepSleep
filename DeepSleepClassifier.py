@@ -12,20 +12,15 @@ from keras.regularizers import l2
 from sklearn.utils import compute_class_weight
 
 
-def next_batch(X, y, size):
+def next_batch(X, y, size, shuffle=True):
+    perm = range(X.shape[0])
+
     while 1:
-        perm = np.random.permutation(X.shape[0])
+        if shuffle:
+            perm = np.random.permutation(X.shape[0])
+
         for i in np.arange(0, X.shape[0], size):
             yield (X[perm[i:i + size]], y[perm[i:i + size]])
-
-
-# def next_batch(data, size, verbose=0):
-#     for item in itertools.cycle(data):
-#         if verbose > 2:
-#             print 'Training on -', item['name']
-#         perm = np.random.permutation(item['Y'].shape[0])
-#         for i in np.arange(0, item['Y'].shape[0], size):
-#             yield (item['X'][perm[i:i + size]], item['Y'][perm[i:i + size]])
 
 
 def unfold(data, verbose=0):
@@ -197,7 +192,7 @@ class DeepSleepClassifier(object):
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
 
-        history = model.fit_generator(next_batch(train_x, train_y, self.batch_size), steps_per_epoch,
+        history = model.fit_generator(next_batch(train_x, train_y, self.batch_size, shuffle=False), steps_per_epoch,
                                       epochs=self.epochs,
                                       verbose=self.verbose,
                                       class_weight=class_weight,
