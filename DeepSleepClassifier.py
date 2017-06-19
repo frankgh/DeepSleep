@@ -4,8 +4,7 @@ import os
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.initializers import Constant
-from keras.layers import Dense, Flatten, ConvLSTM2D, BatchNormalization, LeakyReLU
-from keras.layers.pooling import MaxPooling1D
+from keras.layers import Dense, ConvLSTM2D, BatchNormalization, LeakyReLU, Conv3D
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.regularizers import l2
@@ -152,18 +151,9 @@ class DeepSleepClassifier(object):
             model.add(BatchNormalization())
             model.add(LeakyReLU(alpha=0.3))
 
-        model.add(MaxPooling1D())
-        model.add(Flatten())
-
-        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
-
-        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
-                        kernel_regularizer=l2(self.ridge)))
-        model.add(BatchNormalization())
-        model.add(LeakyReLU(alpha=0.3))
+        model.add(Conv3D(filters=1, kernel_size=(3, 3, 3),
+                         activation='sigmoid',
+                         padding='same', data_format='channels_last'))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge), activation='softmax'))
