@@ -137,7 +137,7 @@ class DeepSleepClassifier(object):
         model.add(ConvLSTM2D(self.initial_filters, (self.initial_kernel_size, 1), strides=(self.initial_strides, 1),
                              padding=self.padding, return_sequences=True, kernel_initializer=self.kernel_initializer,
                              bias_initializer=bias_init,
-                             input_shape=(15000, 3, 1)))
+                             input_shape=(None, 15000, 3, 1)))
         model.add(BatchNormalization())
         model.add(LeakyReLU(alpha=0.3))
 
@@ -243,6 +243,10 @@ class DeepSleepClassifier(object):
             'kernel_size': self.kernel_size,
             'strides': self.strides,
             'iterations': self.iterations,
-            'convolutional_layers': self.convolutional_layers
+            'convolutional_layers': self.convolutional_layers,
+            'initial_filters': self.initial_filters,
+            'initial_strides': self.initial_strides,
+            'initial_kernel_size': self.initial_kernel_size,
+            'padding': self.padding
         }
         return dict(list(config.items()))
