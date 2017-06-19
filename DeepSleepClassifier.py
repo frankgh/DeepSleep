@@ -4,11 +4,11 @@ import os
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.initializers import Constant
-from keras.layers import Dense, Flatten
-from keras.layers.convolutional import Conv1D
+from keras.layers import Dense, Flatten, ConvLSTM2D, BatchNormalization, LeakyReLU
 from keras.layers.pooling import MaxPooling1D
 from keras.models import Sequential
 from keras.optimizers import Adam
+from keras.regularizers import l2
 from sklearn.utils import compute_class_weight
 
 
@@ -138,45 +138,40 @@ class DeepSleepClassifier(object):
         optimizer = Adam(lr=self.lr, decay=self.decay)
         bias_init = Constant(value=0.1)
         model = Sequential()
-        model.add(
-            Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                   bias_initializer=bias_init, activation='selu',
-                   input_shape=(15000, 3)))
 
-        for i in range(5):
+        model.add(ConvLSTM2D(self.initial_filters, (self.initial_kernel_size, 1), strides=(self.initial_strides, 1),
+                             padding=self.padding, return_sequences=True, kernel_initializer=self.kernel_initializer,
+                             bias_initializer=bias_init,
+                             input_shape=(15000, 3, 1)))
+        model.add(BatchNormalization())
+        model.add(LeakyReLU(alpha=0.3))
+
+        layer_count = max(1, self.convolutional_layers - 1)
+
+        for layer_i in range(layer_count):
+            return_sequences = (layer_count - 1) != layer_i
             model.add(
-                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                       bias_initializer=bias_init, activation='selu'))
-        model.add(MaxPooling1D(2, strides=2))
+                ConvLSTM2D(self.filters, (self.kernel_size, 1), strides=(self.strides, 1), padding=self.padding,
+                           return_sequences=return_sequences, kernel_initializer=self.kernel_initializer,
+                           bias_initializer=bias_init))
+            model.add(BatchNormalization())
+            model.add(LeakyReLU(alpha=0.3))
 
-        for i in range(3):
-            model.add(
-                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                       bias_initializer=bias_init, activation='selu'))
-        model.add(MaxPooling1D(2, strides=2))
-
-        for i in range(3):
-            model.add(
-                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                       bias_initializer=bias_init, activation='selu'))
-        model.add(MaxPooling1D(2, strides=2))
-
-        for i in range(3):
-            model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                             bias_initializer=bias_init, activation='selu'))
-        model.add(MaxPooling1D(2, strides=2))
-
-        model.add(MaxPooling1D(100, strides=100))
-        model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                         bias_initializer=bias_init, activation='selu'))
-
+        model.add(MaxPooling1D())
         model.add(Flatten())
 
-        model.add(Dense(100, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='selu'))
-        model.add(Dense(100, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='selu'))
+        model.add(Dense(512, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                        kernel_regularizer=l2(self.ridge)))
+        model.add(BatchNormalization())
+        model.add(LeakyReLU(alpha=0.3))
 
-        model.add(
-            Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax'))
+        model.add(Dense(128, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                        kernel_regularizer=l2(self.ridge)))
+        model.add(BatchNormalization())
+        model.add(LeakyReLU(alpha=0.3))
+
+        model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
+                        kernel_regularizer=l2(self.ridge), activation='softmax'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
