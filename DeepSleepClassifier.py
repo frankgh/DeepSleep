@@ -4,7 +4,7 @@ import os
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.initializers import Constant
-from keras.layers import Dense, ConvLSTM2D, BatchNormalization, Conv3D, LeakyReLU
+from keras.layers import Dense, ConvLSTM2D, BatchNormalization, Conv3D, LeakyReLU, Flatten
 from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.regularizers import l2
@@ -153,6 +153,8 @@ class DeepSleepClassifier(object):
         model.add(Conv3D(filters=1, kernel_size=(3, 3, 3),
                          activation='sigmoid',
                          padding='same', data_format='channels_last'))
+
+        model.add(Flatten())
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init,
                         kernel_regularizer=l2(self.ridge), activation='softmax'))
