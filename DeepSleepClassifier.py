@@ -169,7 +169,10 @@ class DeepSleepClassifier(object):
             model.add(Activation('relu'))
         model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
-        model.add(MaxPooling1D(pool_size=100, strides=100, padding='valid'))
+        model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid'))
+        model.add(Conv1D(100, 100, strides=1, padding='same', kernel_initializer=self.kernel_initializer))
+        model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid'))
+
         model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
