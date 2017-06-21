@@ -2,14 +2,12 @@ import glob
 import os
 
 import numpy as np
-from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.initializers import Constant
+from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from keras.layers import Dense, Flatten, Activation
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling1D
 from keras.models import Sequential
-from keras.optimizers import Adam
 from sklearn.utils import compute_class_weight
 
 
@@ -136,65 +134,57 @@ class DeepSleepClassifier(object):
         return self.data[perm[i:]], self.data[perm[0:i]]  # return training, test sets
 
     def build_model(self):
-        optimizer = Adam(lr=self.lr, decay=self.decay)
-        bias_init = Constant(value=0.1)
+        optimizer = 'sgd'
         model = Sequential()
         model.add(
             Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                   bias_initializer=bias_init,
                    input_shape=(15000, 3)))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
         for i in range(5):
             model.add(
-                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                       bias_initializer=bias_init))
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
-        model.add(MaxPooling1D(2, strides=2))
+        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         for i in range(3):
             model.add(
-                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                       bias_initializer=bias_init))
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
-        model.add(MaxPooling1D(2, strides=2))
+        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         for i in range(3):
             model.add(
-                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                       bias_initializer=bias_init))
+                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
-        model.add(MaxPooling1D(2, strides=2))
+        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         for i in range(3):
-            model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                             bias_initializer=bias_init))
+            model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
-        model.add(MaxPooling1D(2, strides=2))
+        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
-        model.add(MaxPooling1D(100, strides=100))
-        model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                         bias_initializer=bias_init))
+        model.add(MaxPooling1D(pool_size=100, strides=100, padding='valid'))
+        model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
         model.add(Flatten())
 
-        model.add(Dense(100, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
+        model.add(Dense(100, kernel_initializer=self.kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
-        model.add(Dense(100, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init))
+        model.add(Dense(100, kernel_initializer=self.kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
-        model.add(
-            Dense(5, kernel_initializer=self.kernel_initializer, bias_initializer=bias_init, activation='softmax'))
+        model.add(Dense(5, kernel_initializer=self.kernel_initializer, activation='softmax'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -217,6 +207,7 @@ class DeepSleepClassifier(object):
         name = 'DS_e{0:d}-lr{1:g}-dcy{2:g}-m{3:g}-reg{4:g}'.format(self.epochs, self.lr, self.decay, self.m, self.ridge)
         file_path = os.path.join(self.output_dir, name + '_{epoch:03d}-{val_acc:.2f}.h5')
         model_check = ModelCheckpoint(filepath=file_path, monitor='val_loss', verbose=self.verbose, save_best_only=True)
+        reduce_lr = ReduceLROnPlateau(monitor='val_acc', factor=0.1, patience=10, min_lr=1e-6)
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
 
@@ -225,7 +216,7 @@ class DeepSleepClassifier(object):
                                       verbose=self.verbose,
                                       class_weight=class_weight,
                                       validation_data=unfold(self.val_set, self.verbose),
-                                      callbacks=[model_check, early_stopper])
+                                      callbacks=[model_check, early_stopper, reduce_lr])
 
         if self.verbose > 1:
             print(history.history.keys())
