@@ -222,7 +222,7 @@ class DeepSleepClassifier(object):
         x = GlobalAveragePooling2D(name='avg_pool')(x)
         x = Dense(5, activation='softmax', name='predictions')(x)
 
-        model = Model(input_shape, x, name='xception')
+        model = Model(input_shape, x, name='custom_xception')
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
