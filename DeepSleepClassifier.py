@@ -27,16 +27,23 @@ def next_batch(X, y, size):
 
 
 def unfold(data, verbose=0):
-    x, y = np.array(data[0]['X']), np.array(data[0]['Y'])
+    x, y = np.array(expand(data[0]['X'])), np.array(data[0]['Y'])
     if verbose > 0:
         print 'Unfolding: '
         print ' -', data[0]['name']
     for item in data[1:]:
-        x = np.concatenate((x, item['X']))
+        x = np.concatenate((x, expand(item['X'])))
         y = np.concatenate((y, item['Y']))
         if verbose > 0:
             print ' -', item['name']
     return x, y
+
+
+def expand(x):
+    x = np.expand_dims(x, axis=1)
+    x = np.swapaxes(x, 1, 2)
+    x = np.swapaxes(x, 2, 3)
+    return x
 
 
 def count_samples(data):
