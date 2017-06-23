@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras.layers import Dense, Flatten, Activation
+from keras.layers import Dense, Flatten, Activation, LeakyReLU
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling1D
@@ -140,33 +140,33 @@ class DeepSleepClassifier(object):
             Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
                    input_shape=(15000, 3)))
         model.add(BatchNormalization())
-        model.add(Activation('relu'))
+        model.add(LeakyReLU(alpha=0.3))
 
         for i in range(5):
             model.add(
                 Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
             model.add(BatchNormalization())
-            model.add(Activation('relu'))
+            model.add(LeakyReLU(alpha=0.3))
         model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         for i in range(3):
             model.add(
                 Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
             model.add(BatchNormalization())
-            model.add(Activation('relu'))
+            model.add(LeakyReLU(alpha=0.3))
         model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         for i in range(3):
             model.add(
                 Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
             model.add(BatchNormalization())
-            model.add(Activation('relu'))
+            model.add(LeakyReLU(alpha=0.3))
         model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         for i in range(3):
             model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
             model.add(BatchNormalization())
-            model.add(Activation('relu'))
+            model.add(LeakyReLU(alpha=0.3))
         model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid'))
@@ -175,17 +175,17 @@ class DeepSleepClassifier(object):
 
         model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
         model.add(BatchNormalization())
-        model.add(Activation('relu'))
+        model.add(LeakyReLU(alpha=0.3))
 
         model.add(Flatten())
 
         model.add(Dense(100, kernel_initializer=self.kernel_initializer))
         model.add(BatchNormalization())
-        model.add(Activation('relu'))
+        model.add(LeakyReLU(alpha=0.3))
 
         model.add(Dense(100, kernel_initializer=self.kernel_initializer))
         model.add(BatchNormalization())
-        model.add(Activation('relu'))
+        model.add(LeakyReLU(alpha=0.3))
 
         model.add(Dense(5, kernel_initializer=self.kernel_initializer, activation='softmax'))
 
