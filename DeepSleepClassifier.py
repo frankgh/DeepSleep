@@ -2,11 +2,10 @@ import glob
 import os
 
 import numpy as np
-from keras import layers
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras.layers import Input, Dense, Activation, Conv2D, SeparableConv2D, MaxPooling2D, GlobalAveragePooling2D
+from keras.layers import Dense, Activation, Conv1D, MaxPooling1D, Flatten, regularizers
 from keras.layers.normalization import BatchNormalization
-from keras.models import Model
+from keras.models import Sequential
 from sklearn.utils import compute_class_weight
 
 
@@ -141,93 +140,59 @@ class DeepSleepClassifier(object):
 
     def build_model(self):
         optimizer = 'sgd'
-        input_shape = Input(shape=(15000, 3, 1))
-        x = Conv2D(32, (3, 1), strides=(2, 1), use_bias=False, name='block1_conv1')(input_shape)
-        x = BatchNormalization(name='block1_conv1_bn')(x)
-        x = Activation('relu', name='block1_conv1_act')(x)
-        x = Conv2D(64, (3, 1), use_bias=False, name='block1_conv2')(x)
-        x = BatchNormalization(name='block1_conv2_bn')(x)
-        x = Activation('relu', name='block1_conv2_act')(x)
+        model = Sequential()
+        model.add(
+            Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                   input_shape=(15000, 3)))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
 
-        residual = Conv2D(128, (1, 1), strides=(2, 1), padding='same', use_bias=False)(x)
-        residual = BatchNormalization()(residual)
+        for i in range(5):
+            model.add(
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
-        x = SeparableConv2D(128, (3, 1), padding='same', use_bias=False, name='block2_sepconv1')(x)
-        x = BatchNormalization(name='block2_sepconv1_bn')(x)
-        x = Activation('relu', name='block2_sepconv2_act')(x)
-        x = SeparableConv2D(128, (3, 1), padding='same', use_bias=False, name='block2_sepconv2')(x)
-        x = BatchNormalization(name='block2_sepconv2_bn')(x)
+        for i in range(3):
+            model.add(
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
-        x = MaxPooling2D((3, 1), strides=(2, 1), padding='same', name='block2_pool')(x)
-        x = layers.add([x, residual])
+        for i in range(3):
+            model.add(
+                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
-        residual = Conv2D(256, (1, 1), strides=(2, 1), padding='same', use_bias=False)(x)
-        residual = BatchNormalization()(residual)
+        for i in range(3):
+            model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
+            model.add(BatchNormalization())
+            model.add(Activation('relu'))
+        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
-        x = Activation('relu', name='block3_sepconv1_act')(x)
-        x = SeparableConv2D(256, (3, 1), padding='same', use_bias=False, name='block3_sepconv1')(x)
-        x = BatchNormalization(name='block3_sepconv1_bn')(x)
-        x = Activation('relu', name='block3_sepconv2_act')(x)
-        x = SeparableConv2D(256, (3, 1), padding='same', use_bias=False, name='block3_sepconv2')(x)
-        x = BatchNormalization(name='block3_sepconv2_bn')(x)
+        model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid'))
+        model.add(Conv1D(100, 100, strides=1, padding='same', kernel_initializer=self.kernel_initializer))
+        model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid'))
 
-        x = MaxPooling2D((3, 1), strides=(2, 1), padding='same', name='block3_pool')(x)
-        x = layers.add([x, residual])
+        model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
 
-        residual = Conv2D(728, (1, 1), strides=(2, 1), padding='same', use_bias=False)(x)
-        residual = BatchNormalization()(residual)
+        model.add(Flatten())
 
-        x = Activation('relu', name='block4_sepconv1_act')(x)
-        x = SeparableConv2D(728, (3, 1), padding='same', use_bias=False, name='block4_sepconv1')(x)
-        x = BatchNormalization(name='block4_sepconv1_bn')(x)
-        x = Activation('relu', name='block4_sepconv2_act')(x)
-        x = SeparableConv2D(728, (3, 1), padding='same', use_bias=False, name='block4_sepconv2')(x)
-        x = BatchNormalization(name='block4_sepconv2_bn')(x)
+        model.add(Dense(100, kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01)))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
 
-        x = MaxPooling2D((3, 1), strides=(2, 1), padding='same', name='block4_pool')(x)
-        x = layers.add([x, residual])
+        model.add(Dense(100, kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01)))
+        model.add(BatchNormalization())
+        model.add(Activation('relu'))
 
-        for i in range(8):
-            residual = x
-            prefix = 'block' + str(i + 5)
-
-            x = Activation('relu', name=prefix + '_sepconv1_act')(x)
-            x = SeparableConv2D(728, (3, 1), padding='same', use_bias=False, name=prefix + '_sepconv1')(x)
-            x = BatchNormalization(name=prefix + '_sepconv1_bn')(x)
-            x = Activation('relu', name=prefix + '_sepconv2_act')(x)
-            x = SeparableConv2D(728, (3, 1), padding='same', use_bias=False, name=prefix + '_sepconv2')(x)
-            x = BatchNormalization(name=prefix + '_sepconv2_bn')(x)
-            x = Activation('relu', name=prefix + '_sepconv3_act')(x)
-            x = SeparableConv2D(728, (3, 1), padding='same', use_bias=False, name=prefix + '_sepconv3')(x)
-            x = BatchNormalization(name=prefix + '_sepconv3_bn')(x)
-
-            x = layers.add([x, residual])
-
-        residual = Conv2D(1024, (1, 1), strides=(2, 1), padding='same', use_bias=False)(x)
-        residual = BatchNormalization()(residual)
-
-        x = Activation('relu', name='block13_sepconv1_act')(x)
-        x = SeparableConv2D(728, (3, 1), padding='same', use_bias=False, name='block13_sepconv1')(x)
-        x = BatchNormalization(name='block13_sepconv1_bn')(x)
-        x = Activation('relu', name='block13_sepconv2_act')(x)
-        x = SeparableConv2D(1024, (3, 1), padding='same', use_bias=False, name='block13_sepconv2')(x)
-        x = BatchNormalization(name='block13_sepconv2_bn')(x)
-
-        x = MaxPooling2D((3, 1), strides=(2, 1), padding='same', name='block13_pool')(x)
-        x = layers.add([x, residual])
-
-        x = SeparableConv2D(1536, (3, 1), padding='same', use_bias=False, name='block14_sepconv1')(x)
-        x = BatchNormalization(name='block14_sepconv1_bn')(x)
-        x = Activation('relu', name='block14_sepconv1_act')(x)
-
-        x = SeparableConv2D(2048, (3, 1), padding='same', use_bias=False, name='block14_sepconv2')(x)
-        x = BatchNormalization(name='block14_sepconv2_bn')(x)
-        x = Activation('relu', name='block14_sepconv2_act')(x)
-
-        x = GlobalAveragePooling2D(name='avg_pool')(x)
-        x = Dense(5, activation='softmax', name='predictions')(x)
-
-        model = Model(input_shape, x, name='custom_xception')
+        model.add(Dense(5, kernel_initializer=self.kernel_initializer, activation='softmax'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
