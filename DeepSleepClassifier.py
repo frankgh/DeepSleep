@@ -3,8 +3,10 @@ import os
 
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras.layers import Dense, Activation, Conv1D, MaxPooling1D, Flatten, regularizers
+from keras.layers import Dense, Flatten, Activation
+from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
+from keras.layers.pooling import MaxPooling1D
 from keras.models import Sequential
 from sklearn.utils import compute_class_weight
 
@@ -26,23 +28,16 @@ def next_batch(X, y, size):
 
 
 def unfold(data, verbose=0):
-    x, y = np.array(expand(data[0]['X'])), np.array(data[0]['Y'])
+    x, y = np.array(data[0]['X']), np.array(data[0]['Y'])
     if verbose > 0:
         print 'Unfolding: '
         print ' -', data[0]['name']
     for item in data[1:]:
-        x = np.concatenate((x, expand(item['X'])))
+        x = np.concatenate((x, item['X']))
         y = np.concatenate((y, item['Y']))
         if verbose > 0:
             print ' -', item['name']
     return x, y
-
-
-def expand(x):
-    x = np.expand_dims(x, axis=1)
-    x = np.swapaxes(x, 1, 2)
-    x = np.swapaxes(x, 2, 3)
-    return x
 
 
 def count_samples(data):
@@ -124,7 +119,7 @@ class DeepSleepClassifier(object):
     def split_data(self, split=0.17):
         """
         Split permutated data into train and test set split by the split value
-        :param self: 
+        :param self:
         :param split: the split amount
         :return: the training and test sets
         """
