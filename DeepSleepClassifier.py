@@ -137,53 +137,53 @@ class DeepSleepClassifier(object):
         optimizer = 'sgd'
         model = Sequential()
         model.add(
-            Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+            Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01),
                    input_shape=(15000, 3)))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
         for i in range(5):
             model.add(
-                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01)))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
         model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         for i in range(3):
             model.add(
-                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01)))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
         model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         for i in range(3):
             model.add(
-                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
+                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01)))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
         model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         for i in range(3):
-            model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
+            model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01)))
             model.add(BatchNormalization())
             model.add(Activation('relu'))
         model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
 
         model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid'))
-        model.add(Conv1D(100, 100, strides=1, padding='same', kernel_initializer=self.kernel_initializer))
+        model.add(Conv1D(100, 100, strides=1, padding='same', kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01)))
         model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid'))
 
-        model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
+        model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01)))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
         model.add(Flatten())
 
-        model.add(Dense(100, kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dense(100, kernel_initializer=self.kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
-        model.add(Dense(100, kernel_initializer=self.kernel_initializer, kernel_regularizer=regularizers.l2(0.01)))
+        model.add(Dense(100, kernel_initializer=self.kernel_initializer))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
