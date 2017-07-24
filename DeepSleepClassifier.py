@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras.layers import Dense, Flatten, Activation
+from keras.layers import Dense, Flatten, Activation, regularizers
 from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling1D
