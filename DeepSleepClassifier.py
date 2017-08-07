@@ -171,8 +171,8 @@ class DeepSleepClassifier(object):
 
         # Classification block
         x = Flatten(name='flatten')(x)
-        x = Dense(4096, activation='relu', name='fc1')(x)
-        x = Dense(4096, activation='relu', name='fc2')(x)
+        x = Dense(1024, activation='relu', name='fc1')(x)
+        x = Dense(1024, activation='relu', name='fc2')(x)
         x = Dense(5, activation='softmax', name='predictions')(x)
 
         model = Model(input_shape, x, name='custom_vgg16')
