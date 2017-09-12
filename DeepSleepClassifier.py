@@ -33,7 +33,8 @@ def unfold(data, verbose=0):
         print 'Unfolding: '
         print ' -', data[0]['name']
     for item in data[1:]:
-        x = np.concatenate((x, item['X']))
+        tmp_x = np.delete(item['X'], (1, 2), axis=0)
+        x = np.concatenate((x, tmp_x))
         y = np.concatenate((y, item['Y']))
         if verbose > 0:
             print ' -', item['name']
@@ -138,7 +139,7 @@ class DeepSleepClassifier(object):
         model = Sequential()
         model.add(
             Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                   input_shape=(15000, 3)))
+                   input_shape=(15000, 1)))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
