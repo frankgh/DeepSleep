@@ -33,7 +33,7 @@ def unfold(data, verbose=0):
         print 'Unfolding: '
         print ' -', data[0]['name']
     for item in data[1:]:
-        tmp_x = np.delete(item['X'], (1, 2), axis=0)
+        tmp_x = np.delete(item['X'], (1, 2), axis=2)
         x = np.concatenate((x, tmp_x))
         y = np.concatenate((y, item['Y']))
         if verbose > 0:
