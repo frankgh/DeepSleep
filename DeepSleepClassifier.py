@@ -141,7 +141,7 @@ class DeepSleepClassifier(object):
         model = Sequential()
         model.add(
             Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
-                   input_shape=(15000, 1)))
+                   input_shape=(15000, 3)))
         model.add(BatchNormalization())
         model.add(Activation('relu'))
 
