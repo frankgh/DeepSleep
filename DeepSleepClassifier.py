@@ -28,12 +28,14 @@ def next_batch(X, y, size):
 
 
 def unfold(data, verbose=0):
-    x, y = np.array(np.delete(data[0]['X'], (1, 2), axis=2)), np.array(data[0]['Y'])
+    # x, y = np.array(np.delete(data[0]['X'], (1, 2), axis=2)), np.array(data[0]['Y'])
+    x, y = np.array(data[0]['X']), np.array(data[0]['Y'])
     if verbose > 0:
         print 'Unfolding: '
         print ' -', data[0]['name']
     for item in data[1:]:
-        tmp_x = np.delete(item['X'], (1, 2), axis=2)
+        # tmp_x = np.delete(item['X'], (1, 2), axis=2)
+        tmp_x = item['X']
         x = np.concatenate((x, tmp_x))
         y = np.concatenate((y, item['Y']))
         if verbose > 0:
