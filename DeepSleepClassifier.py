@@ -8,6 +8,7 @@ from keras.layers.convolutional import Conv1D
 from keras.layers.normalization import BatchNormalization
 from keras.layers.pooling import MaxPooling1D
 from keras.models import Sequential
+from keras.optimizers import SGD
 from sklearn.utils import compute_class_weight
 
 
@@ -133,68 +134,159 @@ class DeepSleepClassifier(object):
 
         return self.data[perm[i:]], self.data[perm[0:i]]  # return training, test sets
 
-    def build_model(self):
-        optimizer = 'sgd'
+    def build_model(self, layers=-1):
+        optimizer = SGD(lr=self.lr, decay=self.decay, nesterov=False)
         model = Sequential()
         model.add(
-            Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+            Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer, name='conv1d_1',
                    input_shape=(15000, 3)))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
+        model.add(BatchNormalization(name='batch_normalization_1'))
+        model.add(Activation('relu', name='activation_1'))
 
-        for i in range(5):
+        if layers == -1 or layers >= 2:
             model.add(
-                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
-            model.add(BatchNormalization())
-            model.add(Activation('relu'))
-        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_2'))
+            model.add(BatchNormalization(name='batch_normalization_2'))
+            model.add(Activation('relu', name='activation_2'))
 
-        for i in range(3):
+        if layers == -1 or layers >= 3:
             model.add(
-                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
-            model.add(BatchNormalization())
-            model.add(Activation('relu'))
-        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_3'))
+            model.add(BatchNormalization(name='batch_normalization_3'))
+            model.add(Activation('relu', name='activation_3'))
 
-        for i in range(3):
+        if layers == -1 or layers >= 4:
             model.add(
-                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
-            model.add(BatchNormalization())
-            model.add(Activation('relu'))
-        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_4'))
+            model.add(BatchNormalization(name='batch_normalization_4'))
+            model.add(Activation('relu', name='activation_4'))
 
-        for i in range(3):
-            model.add(Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
-            model.add(BatchNormalization())
-            model.add(Activation('relu'))
-        model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid'))
+        if layers == -1 or layers >= 5:
+            model.add(
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_5'))
+            model.add(BatchNormalization(name='batch_normalization_5'))
+            model.add(Activation('relu', name='activation_5'))
 
-        model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid'))
-        model.add(Conv1D(100, 100, strides=1, padding='same', kernel_initializer=self.kernel_initializer))
-        model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid'))
+        if layers == -1 or layers >= 6:
+            model.add(
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_6'))
+            model.add(BatchNormalization(name='batch_normalization_6'))
+            model.add(Activation('relu', name='activation_6'))
 
-        model.add(Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
+        if layers == -1 or layers >= 7:
+            model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid', name='max_pooling1d_1'))
 
-        model.add(Flatten())
+        if layers == -1 or layers >= 8:
+            model.add(
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_7'))
+            model.add(BatchNormalization(name='batch_normalization_7'))
+            model.add(Activation('relu', name='activation_7'))
 
-        model.add(Dense(100, kernel_initializer=self.kernel_initializer))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
+        if layers == -1 or layers >= 9:
+            model.add(
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_8'))
+            model.add(BatchNormalization(name='batch_normalization_8'))
+            model.add(Activation('relu', name='activation_8'))
 
-        model.add(Dense(100, kernel_initializer=self.kernel_initializer))
-        model.add(BatchNormalization())
-        model.add(Activation('relu'))
+        if layers == -1 or layers >= 10:
+            model.add(
+                Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_9'))
+            model.add(BatchNormalization(name='batch_normalization_9'))
+            model.add(Activation('relu', name='activation_9'))
 
-        model.add(Dense(5, kernel_initializer=self.kernel_initializer, activation='softmax'))
+        if layers == -1 or layers >= 11:
+            model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid', name='max_pooling1d_2'))
+
+        if layers == -1 or layers >= 12:
+            model.add(
+                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_10'))
+            model.add(BatchNormalization(name='batch_normalization_10'))
+            model.add(Activation('relu', name='activation_10'))
+
+        if layers == -1 or layers >= 13:
+            model.add(
+                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_11'))
+            model.add(BatchNormalization(name='batch_normalization_11'))
+            model.add(Activation('relu', name='activation_11'))
+
+        if layers == -1 or layers >= 14:
+            model.add(
+                Conv1D(50, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_12'))
+            model.add(BatchNormalization(name='batch_normalization_12'))
+            model.add(Activation('relu', name='activation_12'))
+
+        if layers == -1 or layers >= 15:
+            model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid', name='max_pooling1d_3'))
+
+        if layers == -1 or layers >= 16:
+            model.add(
+                Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_13'))
+            model.add(BatchNormalization(name='batch_normalization_13'))
+            model.add(Activation('relu', name='activation_13'))
+
+        if layers == -1 or layers >= 17:
+            model.add(
+                Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_14'))
+            model.add(BatchNormalization(name='batch_normalization_14'))
+            model.add(Activation('relu', name='activation_14'))
+
+        if layers == -1 or layers >= 18:
+            model.add(
+                Conv1D(100, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_15'))
+            model.add(BatchNormalization(name='batch_normalization_15'))
+            model.add(Activation('relu', name='activation_15'))
+
+        if layers == -1 or layers >= 19:
+            model.add(MaxPooling1D(pool_size=2, strides=2, padding='valid', name='max_pooling1d_4'))
+
+        if layers == -1 or layers >= 20:
+            model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid', name='max_pooling1d_5'))
+            model.add(
+                Conv1D(100, 100, strides=1, padding='same', kernel_initializer=self.kernel_initializer,
+                       name='conv1d_16'))
+            model.add(MaxPooling1D(pool_size=10, strides=10, padding='valid', name='max_pooling1d_6'))
+
+        if layers == -1 or layers >= 21:
+            model.add(
+                Conv1D(4, 5, strides=1, padding='valid', kernel_initializer=self.kernel_initializer, name='conv1d_17'))
+            model.add(BatchNormalization(name='batch_normalization_16'))
+            model.add(Activation('relu', name='activation_16'))
+
+        model.add(Flatten(name='flatten_1'))
+
+        model.add(Dense(100, kernel_initializer=self.kernel_initializer, name='dense_1'))
+        model.add(BatchNormalization(name='batch_normalization_17'))
+        model.add(Activation('relu', name='activation_17'))
+
+        model.add(Dense(100, kernel_initializer=self.kernel_initializer, name='dense_2'))
+        model.add(BatchNormalization(name='batch_normalization_18'))
+        model.add(Activation('relu', name='activation_18'))
+
+        model.add(Dense(5, kernel_initializer=self.kernel_initializer, activation='softmax', name='dense_3'))
 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
         return model
 
-    def train_model(self):
-        model = self.build_model()
+    def train_model(self, layers=-1, previous_model_filename=None):
+        model = self.build_model(layers=layers)
+
+        if previous_model_filename:
+            model.load_weights(previous_model_filename, by_name=True)
 
         if self.verbose > 0:
             model.summary()
@@ -205,12 +297,14 @@ class DeepSleepClassifier(object):
         steps_per_epoch = int(np.math.ceil(1.0 * len(train_y) / self.batch_size))
 
         if self.verbose > 0:
-            print 'Samples:', len(train_y), 'Epochs:', self.epochs, 'Steps:', steps_per_epoch
+            print (
+                'Layers:{}, Samples:{}, Epochs:{}, Steps:{}'.format(layers, len(train_y), self.epochs, steps_per_epoch))
 
-        name = 'DS_e{0:d}-lr{1:g}-dcy{2:g}-m{3:g}-reg{4:g}'.format(self.epochs, self.lr, self.decay, self.m, self.ridge)
+        name = 'DS_ly{5:d}_e{0:d}-lr{1:g}-dcy{2:g}-m{3:g}-reg{4:g}'.format(self.epochs, self.lr, self.decay, self.m,
+                                                                           self.ridge, layers)
         file_path = os.path.join(self.output_dir, name + '_{epoch:03d}-{val_acc:.2f}.h5')
         model_check = ModelCheckpoint(filepath=file_path, monitor='val_loss', verbose=self.verbose, save_best_only=True)
-        reduce_lr = ReduceLROnPlateau(monitor='val_acc', factor=0.1, patience=10, min_lr=1e-6)
+        reduce_lr = ReduceLROnPlateau(monitor='val_acc', factor=0.1, patience=10, min_lr=1e-6, verbose=self.verbose)
         early_stopper = EarlyStopping(monitor='val_loss', min_delta=0, patience=self.patience, verbose=self.verbose,
                                       mode='auto')
 
@@ -224,29 +318,42 @@ class DeepSleepClassifier(object):
         if self.verbose > 1:
             print(history.history.keys())
 
-        model.save(os.path.join(self.output_dir, 'model.h5'))
-        np.savez(os.path.join(self.output_dir, 'history.npz'), acc=history.history['acc'],
-                 val_acc=history.history['val_acc'], loss=history.history['loss'], val_loss=history.history['val_loss'])
+        if layers == -1:
+            filename = os.path.join(self.output_dir, 'model.h5')
+            model.save(filename)
+            np.savez(os.path.join(self.output_dir, 'history.npz'), acc=history.history['acc'],
+                     val_acc=history.history['val_acc'], loss=history.history['loss'],
+                     val_loss=history.history['val_loss'])
+        else:
+            filename = os.path.join(self.output_dir, 'model_layers-{}.h5'.format(layers))
+            model.save(filename)
+            np.savez(os.path.join(self.output_dir, 'history_layers-{}.npz'.format(layers)), acc=history.history['acc'],
+                     val_acc=history.history['val_acc'], loss=history.history['loss'],
+                     val_loss=history.history['val_loss'])
 
-        return model, history
+        return model, history, filename
 
-    def test_model(self, model):
+    def test_model(self, model, layers=-1):
         # Test model on test set
         if self.verbose > 0:
-            print 'Testing model'
+            if layers == -1:
+                print 'Testing model'
+            else:
+                print 'Testing model with {} layers'.format(layers)
+
         test_x, y_true = unfold(self.test_data, self.verbose)
         loss_and_metrics = model.evaluate(test_x, y_true, batch_size=self.batch_size, verbose=self.verbose)
         y_pred = model.predict(test_x, batch_size=self.batch_size, verbose=self.verbose)
 
-        # y_true_class = np.argmax(y_true, axis=1)
-        # y_pred_class = np.argmax(y_pred, axis=1)
-        # conf_mat = metrics.confusion_matrix(y_true_class, y_pred_class)
-
         if self.verbose > 0:
-            print "Loss: {} Accuracy: {}%".format(loss_and_metrics[0], loss_and_metrics[1] * 100)
+            print "Layers: {}, Loss: {} Accuracy: {}%".format(layers, loss_and_metrics[0], loss_and_metrics[1] * 100)
 
-        np.savez(os.path.join(self.output_dir, 'test_results.npz'), loss_and_metrics=loss_and_metrics,
-                 y_true=y_true, y_pred=y_pred)
+        if layers == -1:
+            np.savez(os.path.join(self.output_dir, 'test_results.npz'), loss_and_metrics=loss_and_metrics,
+                     y_true=y_true, y_pred=y_pred)
+        else:
+            np.savez(os.path.join(self.output_dir, 'test_results_layer-{}.npz'.format(layers)),
+                     loss_and_metrics=loss_and_metrics, y_true=y_true, y_pred=y_pred)
 
     def get_config(self):
         config = {

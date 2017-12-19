@@ -74,16 +74,28 @@ if __name__ == "__main__":
                     help='kernel size for the first convolutional layer', type=int)
     ap.add_argument('--padding', dest='padding', metavar='padding', help='padding for the convolutional layers')
     ap.add_argument('--split', dest='split', metavar='split', help='split for the training and validation', type=float)
+    ap.add_argument('--layer_by_layer', help='Train the network layer by layer', action='store_true')
     args = ap.parse_args()
     kwargs = get_kwargs(args)
 
     print 'Setting up with kwargs:', kwargs
 
-    start = time.time()
-    classifier = DeepSleepClassifier(args.data_dir, args.output_dir, **kwargs)
-    model, _ = classifier.train_model()
-    classifier.test_model(model)
-    elapsed = time.time() - start
+    if args.layer_by_layer:
+        model_filename = None
+
+        for layers in range(1, 22):
+            start = time.time()
+            classifier = DeepSleepClassifier(args.data_dir, args.output_dir, **kwargs)
+            model, _, model_filename = classifier.train_model(layers=layers, previous_model_filename=model_filename)
+            classifier.test_model(model, layers=layers)
+            elapsed = time.time() - start
+            print 'Training for {} layers completed in {}'.format(layers, str(timedelta(seconds=elapsed)))
+    else:
+        start = time.time()
+        classifier = DeepSleepClassifier(args.data_dir, args.output_dir, **kwargs)
+        model, _, model_filename = classifier.train_model()
+        classifier.test_model(model)
+        elapsed = time.time() - start
+        print 'Training completed in {}'.format(str(timedelta(seconds=elapsed)))
 
     print 'Classifier config:', classifier.get_config()
-    print 'Training completed in', str(timedelta(seconds=elapsed))
