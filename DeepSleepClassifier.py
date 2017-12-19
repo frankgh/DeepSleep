@@ -137,7 +137,7 @@ class DeepSleepClassifier(object):
         return self.data[perm[i:]], self.data[perm[0:i]]  # return training, test sets
 
     def build_model(self, layers=-1):
-        optimizer = SGD(lr=self.lr, decay=self.decay, nesterov=False)
+        optimizer = SGD(lr=self.lr, momentum=self.m, decay=self.decay, nesterov=False)
         model = Sequential()
         model.add(
             Conv1D(25, 100, strides=1, padding='valid', kernel_initializer=self.kernel_initializer, name='conv1d_1',
@@ -268,9 +268,13 @@ class DeepSleepClassifier(object):
             model.add(BatchNormalization(name='batch_normalization_16'))
             model.add(Activation('relu', name='activation_16'))
 
-        model.add(Flatten(name='flatten_1'))
+        if layers == -1:
+            model.add(Flatten(name='flatten_1'))
+            model.add(Dense(100, kernel_initializer=self.kernel_initializer, name='dense_1'))
+        else:
+            model.add(Flatten(name='flatten_1_layers-{}'.format(layers)))
+            model.add(Dense(100, kernel_initializer=self.kernel_initializer, name='dense_1_layers-{}'.format(layers)))
 
-        model.add(Dense(100, kernel_initializer=self.kernel_initializer, name='dense_1'))
         model.add(BatchNormalization(name='batch_normalization_17'))
         model.add(Activation('relu', name='activation_17'))
 
