@@ -288,6 +288,8 @@ class DeepSleepClassifier(object):
         model = self.build_model(layers=layers)
 
         if previous_model_filename:
+            if self.verbose > 0:
+                print('Loading weights from {}'.format(previous_model_filename))
             model.load_weights(previous_model_filename, by_name=True)
 
         if self.verbose > 0:
