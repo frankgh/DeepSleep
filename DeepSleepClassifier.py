@@ -79,6 +79,8 @@ class DeepSleepClassifier(object):
                  initial_kernel_size=500,
                  split=0.17,
                  padding='same'):
+        self.data = None  # Initialized in load_data
+        self.test_data = None  # Initialized in load_data
         self.data_dir = data_dir
         self.output_dir = output_dir
         self.batch_size = batch_size
