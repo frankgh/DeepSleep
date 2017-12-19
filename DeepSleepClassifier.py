@@ -287,11 +287,6 @@ class DeepSleepClassifier(object):
     def train_model(self, layers=-1, previous_model_filename=None):
         model = self.build_model(layers=layers)
 
-        if previous_model_filename:
-            if self.verbose > 0:
-                print('Loading weights from {}'.format(previous_model_filename))
-            model.load_weights(previous_model_filename, by_name=True)
-
         if self.verbose > 0:
             model.summary()
             print 'Training set:'
@@ -299,6 +294,11 @@ class DeepSleepClassifier(object):
         train_x, train_y = unfold(self.train_set, self.verbose)
         class_weight = calculate_weights(self.train_set)
         steps_per_epoch = int(np.math.ceil(1.0 * len(train_y) / self.batch_size))
+
+        if previous_model_filename:
+            if self.verbose > 0:
+                print('Loading weights from {}'.format(previous_model_filename))
+            model.load_weights(previous_model_filename, by_name=True)
 
         if self.verbose > 0:
             print (
